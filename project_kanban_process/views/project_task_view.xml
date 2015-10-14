@@ -1,0 +1,27 @@
+<openerp>
+    <data>
+        <record id="project_task_view_form_ext" model="ir.ui.view">
+            <field name="name">project.task.form.ext</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_form2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='planned_hours']" position="before">
+                    <field name="total_time"/>
+                    <field name="stage_time"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="project_task_view_tree_ext" model="ir.ui.view">
+            <field name="name">project.task.tree.ext</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_tree2"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='planned_hours']" position="before">
+                    <field name="total_time" invisible="context.get('user_invisible', False)"/>
+                    <field name="stage_time" invisible="context.get('user_invisible', False)"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>

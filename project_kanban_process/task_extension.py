@@ -7,6 +7,15 @@ from datetime import datetime as dt, timedelta as td
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as dtf
 
 
+class ProjectTaskHistoryExtension(models.Model):
+    """
+    Extends `project.task.history` Odoo model
+    """
+    _name = 'project.task.history'
+    _inherit = 'project.task.history'
+    _log_access = True
+
+
 class ProjectTaskExtension(models.Model):
     """
     Extends `project.task` Odoo model
@@ -17,6 +26,7 @@ class ProjectTaskExtension(models.Model):
     total_time = fields.Integer(string='Total Elapsed Time', compute='_compute_total_time', store=False, readonly=True)
     stage_time = fields.Integer(string='Stage Elapsed Time', compute='_compute_stage_time', store=False, readonly=True)
 
+    @api.one
     def _compute_total_time(self):
         """
         Computes the total time elapsed between the creation date of the
@@ -30,8 +40,9 @@ class ProjectTaskExtension(models.Model):
         else:
             date_end = dt.strptime(self.date_end, dtf)
         elapsed_time = (date_end - dt.strptime(self.create_date, dtf)).total_seconds()
-        return int(elapsed_time/3600)
+        self.total_time = int(elapsed_time/3600)
 
+    @api.one
     def _compute_stage_time(self):
         """
         Computes the total time elapsed from the first time the task
@@ -41,20 +52,17 @@ class ProjectTaskExtension(models.Model):
         :returns: time in hours
         :rtype: int
         """
-        if not self.date_end:
-            date_end = dt.now()
-        else:
-            date_end = dt.strptime(self.date_end, dtf)
-        elapsed_time = (date_end - dt.strptime(self.date_last_stage_update, dtf)).total_seconds()
-        task_history_records = self.env('project.task.history').search([['task_id', '=', self.id]], order='id asc')
+        elapsed_time = (dt.now() - dt.strptime(self.date_last_stage_update, dtf)).total_seconds()
+        task_history_records = self.env['project.task.history'].search([['task_id', '=', self.id]], order='id asc')
         add_time = False
         date_start = False
         for th in task_history_records:
             if add_time and isinstance(date_start, dt):
-                elapsed_time += (dt.strptime(th.create_date, dtf) - date_start).total_seconds()
-            if self.stage_id != th.stage_id:
+                date_end = dt.strptime(th.create_date, dtf) if th.create_date else dt.strptime(th.date, '%Y-%m-%d')
+                elapsed_time += (date_end - date_start).total_seconds()
+            if self.stage_id.id != th.type_id.id:
                 add_time = False
                 continue
             add_time = True
-            date_start = dt.strptime(th.create_date, dtf)
-        return int(elapsed_time/3600)
+            date_start = dt.strptime(th.create_date, dtf) if th.create_date else dt.strptime(th.date, '%Y-%m-%d')
+        self.stage_time = int(elapsed_time/3600)

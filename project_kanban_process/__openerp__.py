@@ -9,7 +9,7 @@
     'author': 'Joel Ortiz',
     'website': '',
     'depends': ['project', 'hr'],
-    'data': [],
+    'data': ['views/project_task_view.xml'],
     'demo': [],
     'css': [],
     'js': [],
