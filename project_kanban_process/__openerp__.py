@@ -1,0 +1,21 @@
+# -*- encoding: utf-8 -*-
+{
+    'name': 'Project Kanban Process',
+    'version': '0.1',
+    'category': 'Project Management',
+    'license': '',
+    'summary': 'Extends Project to match better the Kanban working practices',
+    'description': """Extends Project to match better the Kanban working practices, compatible with Odoo 8 or later""",
+    'author': 'Joel Ortiz',
+    'website': '',
+    'depends': ['project', 'hr'],
+    'data': [],
+    'demo': [],
+    'css': [],
+    'js': [],
+    'qweb': [],
+    'images': [],
+    'application': True,
+    'installable': True,
+    'active': False,
+}
