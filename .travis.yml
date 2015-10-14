@@ -2,17 +2,23 @@ language: python
 python:
   - "2.7"
 env:
-  - ODOO: "https://github.com/odoo/odoo/archive/8.0.zip"
+  - VERSION="8.0" UNIT_TEST="1" ODOO_REPO="odoo/odoo" LINT_CHECK="1"
+
+virtualenv:
+  system_site_packages: true
+
 # install dependencies
 install:
   - pip install -r requirements.txt
-#  - pip install coveralls flake8
-  - pip install ${ODOO}
+  - git clone https://github.com/amdeb/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - travis_install_nightly
+
 # create DB
-before_script:
+#before_script:
 #  - ./install-odoo.sh
-  - createdb test
+#  - createdb test
 
 script:
-  - odoo.py -d test --stop-after-init
+  - travis_run_tests
 
