@@ -1,0 +1,18 @@
+language: python
+python:
+  - "2.7"
+env:
+  - ODOO: "https://github.com/odoo/odoo/archive/8.0.zip"
+# install dependencies
+install:
+  - pip install -r requirements.txt
+#  - pip install coveralls flake8
+  - pip install ${ODOO}
+# create DB
+before_script:
+#  - ./install-odoo.sh
+  - createdb test
+
+script:
+  - odoo.py -d test --stop-after-init
+

@@ -3,6 +3,7 @@ from mock import patch, MagicMock
 from datetime import datetime as dt, timedelta as td
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as dtf
 
+
 class TestTaskExtension(common.SingleTransactionCase):
 
     @classmethod
