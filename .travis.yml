@@ -1,21 +1,41 @@
 language: python
+sudo: false
+cache:
+  apt: true
+  directories:
+    - $HOME/.cache/pip
 
 python:
   - "2.7"
 
+addons:
+  apt:
+    packages:
+      - expect-dev  # provides unbuffer utility
+      - python-lxml  # because pip installation is slow
+      - python-simplejson
+      - python-serial
+      - python-yaml
+
 env:
-  - ODOO="https://github.com/odoo/odoo/archive/8.0.tar.gz"
+  global:
+  - VERSION="8.0" UNIT_TEST="1" ODOO_REPO="odoo/odoo" LINT_CHECK="0"
+
+virtualenv:
+  system_site_packages: true
 
 # install dependencies
 install:
   - pip install -r requirements.txt
-  - pip install ${ODOO}
+  - git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - travis_install_nightly
 
 # create DB
-before_script:
+#before_script:
 #  - ./install-odoo.sh
-  - createdb test
+#  - createdb test
 
 script:
-  - odoo.py -d test --stop-after-init --init=$(python -c 'import os; print(",".join(x for x in os.listdir(".") if os.path.isdir(x) and not x.startswith(".")))') --addons-path=$(pwd),`python -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"`/addons
+  - travis_run_tests
 
