@@ -31,11 +31,8 @@ install:
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
   - travis_install_nightly
 
-# create DB
-#before_script:
-#  - ./install-odoo.sh
-#  - createdb test
-
 script:
   - travis_run_tests
 
+after_success:
+  coveralls

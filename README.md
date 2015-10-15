@@ -1,4 +1,4 @@
-# My Odoo Extensions
+# My Odoo Extensions [![Build Status](https://travis-ci.org/Jamkasz/jo-odoo-addons.svg)](https://travis-ci.org/Jamkasz/jo-odoo-addons)
 Extensions for Odoo not available in the default addons.
 
 ## Planned work
