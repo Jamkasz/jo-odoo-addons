@@ -47,12 +47,12 @@ class TestTaskExtension(common.SingleTransactionCase):
         self.assertEqual(self.task.get_working_hours(start, end)[0], 5)
 
     def test_04_get_working_hours_same_day_outside_calendar_times(self):
-        start = dt.strptime('2015-10-19 8:00:00', dtf)
+        start = dt.strptime('2015-10-19 08:00:00', dtf)
         end = dt.strptime('2015-10-19 15:00:00', dtf)
         self.assertEqual(self.task.get_working_hours(start, end)[0], 5)
 
     def test_05_get_working_hours_different_day(self):
-        start = dt.strptime('2015-10-19 8:00:00', dtf)
+        start = dt.strptime('2015-10-19 08:00:00', dtf)
         end = dt.strptime('2015-10-20 12:00:00', dtf)
         self.assertEqual(self.task.get_working_hours(start, end)[0], 10)
 

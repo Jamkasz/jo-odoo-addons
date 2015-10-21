@@ -99,6 +99,7 @@ class ProjectTaskExtension(models.Model):
         :type date_start: datetime
         :param date_end: End time
         :type date_end: datetime
+        :raises: `models.except_orm`
         :returns: working hours
         :rtype: int
         """
@@ -121,6 +122,7 @@ class ProjectTaskExtension(models.Model):
         :type stage_id: int
         :param date: end date
         :type date: datetime
+        :raises: `models.except_orm`
         :returns: working hours
         :rtype: int
         """
