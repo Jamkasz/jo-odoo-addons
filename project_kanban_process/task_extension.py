@@ -135,15 +135,15 @@ class ProjectTaskExtension(models.Model):
             for th in task_history_records:
                 if add_time and isinstance(date_start, dt):
                     date_end = dt.strptime(th.date, dtf)
-                    result += self.get_working_hours(date_start, date_end)
+                    result += self.get_working_hours(date_start, date_end)[0]
                 if stage_id == th.type_id.id:
                     add_time = True
                     date_start = dt.strptime(th.date, dtf)
                 else:
                     add_time = False
             if add_time:
-                result += self.get_working_hours(date_start, date)
+                result += self.get_working_hours(date_start, date)[0]
         elif self.stage_id.id == stage_id:
             date_start = dt.strptime(self.date_last_stage_update, dtf)
-            result += self.get_working_hours(date_start, date)
+            result += self.get_working_hours(date_start, date)[0]
         return result
