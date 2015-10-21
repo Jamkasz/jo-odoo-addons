@@ -46,24 +46,19 @@ class TestTaskExtension(common.SingleTransactionCase):
         end = dt.strptime('2015-10-19 15:00:00', dtf)
         self.assertEqual(self.task.get_working_hours(start, end)[0], 5)
 
-    def test_04_get_working_hours_same_day_outside_calendar_times(self):
-        start = dt.strptime('2015-10-19 08:00:00', dtf)
-        end = dt.strptime('2015-10-19 15:00:00', dtf)
-        self.assertEqual(self.task.get_working_hours(start, end)[0], 5)
-
-    def test_05_get_working_hours_different_day(self):
-        start = dt.strptime('2015-10-19 08:00:00', dtf)
+    def test_04_get_working_hours_different_day(self):
+        start = dt.strptime('2015-10-19 10:00:00', dtf)
         end = dt.strptime('2015-10-20 12:00:00', dtf)
         self.assertEqual(self.task.get_working_hours(start, end)[0], 10)
 
-    def test_06_stage_working_hours_raises_exception_with_non_datetime_date(self):
+    def test_05_stage_working_hours_raises_exception_with_non_datetime_date(self):
         with self.assertRaises(except_orm):
             self.task.stage_working_hours(1, 'date')
 
-    def test_07_stage_working_hours_no_stage(self):
+    def test_06_stage_working_hours_no_stage(self):
         self.assertEqual(self.task.stage_working_hours(1, dt.now())[0], 0)
 
-    def test_08_stage_working_hours(self):
+    def test_07_stage_working_hours(self):
         self.task2.stage_id = self.stage.id
         self.log_model.create({
             'task_id': self.task2.id,
