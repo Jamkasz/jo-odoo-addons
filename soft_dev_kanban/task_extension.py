@@ -18,15 +18,6 @@ class ProjectTaskHistoryExtension(models.Model):
     date = fields.Datetime('Date', select=True)
 
 
-class ProjectTaskTypeExtension(models.Model):
-    """
-    Extends `project.task.type` Odoo model to add stage types that
-    will allow getting better and more accurate kanban metrics like
-    lead time and throughput.
-    """
-    _types = [[], ]
-
-
 class ProjectTaskExtension(models.Model):
     """
     Extends `project.task` Odoo model
