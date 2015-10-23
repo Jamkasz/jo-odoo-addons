@@ -18,6 +18,15 @@ class ProjectTaskHistoryExtension(models.Model):
     date = fields.Datetime('Date', select=True)
 
 
+class ProjectTaskTypeExtension(models.Model):
+    """
+    Extends `project.task.type` Odoo model to add stage types that
+    will allow getting better and more accurate kanban metrics like
+    lead time and throughput.
+    """
+    _types = [[], ]
+
+
 class ProjectTaskExtension(models.Model):
     """
     Extends `project.task` Odoo model
@@ -25,8 +34,13 @@ class ProjectTaskExtension(models.Model):
     _name = 'project.task'
     _inherit = 'project.task'
 
-    total_time = fields.Integer(string='Total Working Hours', compute='_compute_total_time', store=False, readonly=True)
-    stage_time = fields.Integer(string='Stage Working Hours', compute='_compute_stage_time', store=False, readonly=True)
+    total_time = fields.Integer(
+        string='Lead Time', compute='_compute_total_time',
+        store=False, readonly=True)
+    # TODO internal_time = fields.Integer(string='Internal Lead Time', compute='_compute_internal_time', store=False, readonly=True)
+    stage_time = fields.Integer(
+        string='Stage Working Hours', compute='_compute_stage_time',
+        store=False, readonly=True)
 
     @api.one
     def _store_history(self):
@@ -64,7 +78,8 @@ class ProjectTaskExtension(models.Model):
             date_end = dt.strptime(self.date_end, dtf)
         else:
             date_end = dt.now()
-        self.total_time = self.get_working_hours(dt.strptime(self.date_start, dtf), date_end)[0]
+        self.total_time = self.get_working_hours(
+            dt.strptime(self.date_start, dtf), date_end)[0]
 
     @api.one
     def _compute_stage_time(self):
@@ -104,11 +119,16 @@ class ProjectTaskExtension(models.Model):
         :rtype: int
         """
         if not isinstance(date_start, dt):
-            raise models.except_orm('Attribute Error', 'expected datetime, received %s' % type(date_start))
+            raise models.except_orm(
+                'Attribute Error',
+                'expected datetime, received %s' % type(date_start))
         if not isinstance(date_end, dt):
-            raise models.except_orm('Attribute Error', 'expected datetime, received %s' % type(date_end))
+            raise models.except_orm(
+                'Attribute Error',
+                'expected datetime, received %s' % type(date_end))
         if self.project_id and self.project_id.resource_calendar_id:
-            return int(self.project_id.resource_calendar_id.get_working_hours(date_start, date_end)[0])
+            return int(self.project_id.resource_calendar_id.get_working_hours(
+                date_start, date_end)[0])
         else:
             return int((date_end - date_start).total_seconds()/3600)
 
@@ -127,9 +147,12 @@ class ProjectTaskExtension(models.Model):
         :rtype: int
         """
         if not isinstance(date, dt):
-            raise models.except_orm('Attribute Error', 'expected datetime, received %s' % type(date))
+            raise models.except_orm(
+                'Attribute Error',
+                'expected datetime, received %s' % type(date))
         task_history_records = self.env['project.task.history'].search([
-            ['task_id', '=', self.id], ['date', '<=', date.strftime(dtf)]], order='date asc')
+            ['task_id', '=', self.id], ['date', '<=', date.strftime(dtf)]],
+            order='date asc')
         result = 0
         if task_history_records:
             add_time = False
