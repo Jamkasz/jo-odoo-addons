@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 {
     'name': 'Software Development Kanban',
-    'version': '0.1',
+    'version': '0.0.1',
     'category': 'Project Management',
     'license': '',
     'summary': 'Extends Project to match better the Software Development Kanban working practices',
@@ -9,7 +9,8 @@
     'author': 'Joel Ortiz',
     'website': '',
     'depends': ['project', 'hr'],
-    'data': ['views/project_task_view.xml'],
+    'data': ['views/project_task_view.xml',
+             'data/project_data.xml'],
     'demo': [],
     'css': [],
     'js': [],

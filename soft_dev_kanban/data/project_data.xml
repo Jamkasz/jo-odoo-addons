@@ -1,0 +1,80 @@
+<openerp>
+    <data>
+        <!-- Task Stages -->
+        <record id="project_tt_backlog" model="project.task.type">
+            <field name="sequence">1</field>
+            <field name="name">Backlog</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">backlog</field>
+        </record>
+        <record id="project_tt_input" model="project.task.type">
+            <field name="sequence">2</field>
+            <field name="name">Input Queue</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">input</field>
+        </record>
+        <record id="project.project_tt_analysis" model="project.task.type">
+            <field name="sequence">5</field>
+            <field name="name">Analysis</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">analysis</field>
+        </record>
+        <record id="project.project_tt_specification" model="project.task.type">
+            <field name="sequence">10</field>
+            <field name="name">Specification</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">analysis</field>
+        </record>
+        <record id="project.project_tt_design" model="project.task.type">
+            <field name="sequence">11</field>
+            <field name="name">Design</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">analysis</field>
+        </record>
+        <record id="project_tt_development_ready" model="project.task.type">
+            <field name="sequence">12</field>
+            <field name="name">Development Ready</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">queue</field>
+        </record>
+        <record id="project.project_tt_development" model="project.task.type">
+            <field name="sequence">13</field>
+            <field name="name">Development</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">dev</field>
+        </record>
+        <record id="project_tt_test_ready" model="project.task.type">
+            <field name="sequence">14</field>
+            <field name="name">Test Ready</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">queue</field>
+        </record>
+        <record id="project.project_tt_testing" model="project.task.type">
+            <field name="sequence">15</field>
+            <field name="name">Testing</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">review</field>
+        </record>
+        <record id="project.project_tt_merge" model="project.task.type">
+            <field name="sequence">16</field>
+            <field name="name">Merge</field>
+            <field name="case_default" eval="False"/>
+            <field name="fold" eval="True"/>
+            <field name="stage_type">queue</field>
+        </record>
+        <record id="project.project_tt_deployment" model="project.task.type">
+            <field name="sequence">20</field>
+            <field name="name">Done</field>
+            <field name="case_default" eval="True"/>
+            <field name="fold" eval="True"/>
+            <field name="stage_type">done</field>
+        </record>
+        <record id="project.project_tt_cancel" model="project.task.type">
+            <field name="sequence">30</field>
+            <field name="name">Cancelled</field>
+            <field name="case_default" eval="True"/>
+            <field name="fold" eval="True"/>
+            <field name="stage_type">done</field>
+        </record>
+    </data>
+</openerp>

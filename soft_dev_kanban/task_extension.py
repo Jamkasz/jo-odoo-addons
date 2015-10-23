@@ -18,6 +18,49 @@ class ProjectTaskHistoryExtension(models.Model):
     date = fields.Datetime('Date', select=True)
 
 
+class ProjectTaskTypeExtension(models.Model):
+    """
+    Extends `project.task.type` Odoo model to add stage types that
+    will allow getting better and more accurate kanban metrics like
+    lead time and throughput.
+
+    `backlog` type allows to have a buffer to store ideas to pull
+    into the workflow whenever necessary.
+    `input` type marks the starting point ot fhe workflow, a task
+    ``date_start`` will be updated when reaching this stage.
+    `queue` type is used as buffers within the workflow. Time spent
+    here counts towards the lean time anyway, but it will be ignored
+    when computing employee workload.
+    `analysis` type marks the WIP stages for analysts.
+    `dev` type marks the WIP stages for developers.
+    `review` type marks the WIP stages for reviewers (i.e. testing).
+    `done` type marks the finishing points of the workflow, a task
+    ``date_end`` will be updated when reaching this stage.
+
+    `internal` and `external` sources allows us to measure extra
+    metrics like lead time within our organization only.
+    """
+    _name = 'project.task.type'
+    _inherit = 'project.task.type'
+    _types = [
+        ['backlog', 'Backlog'],
+        ['input', 'Input Queue/ToDo'],
+        ['queue', 'Queue/Buffer'],
+        ['analysis', 'Analysis'],
+        ['dev', 'Development'],
+        ['review', 'Review'],
+        ['done', 'Done'],
+        ['other', 'Other']
+    ]
+    _sources = [
+        ['internal', 'Internal'],
+        ['external', 'External']
+    ]
+
+    stage_type = fields.Selection(_types, 'Type', default='other')
+    source = fields.Selection(_sources, 'Source', default='internal')
+
+
 class ProjectTaskExtension(models.Model):
     """
     Extends `project.task` Odoo model
@@ -32,6 +75,8 @@ class ProjectTaskExtension(models.Model):
     stage_time = fields.Integer(
         string='Stage Working Hours', compute='_compute_stage_time',
         store=False, readonly=True)
+    analyst_id = fields.Many2one('res.users', 'Analyst', select=True,
+                                 track_visibility='onchange')
 
     @api.one
     def _store_history(self):
