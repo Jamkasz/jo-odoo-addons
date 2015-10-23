@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 {
-    'name': 'Project Kanban Process',
+    'name': 'Software Development Kanban',
     'version': '0.1',
     'category': 'Project Management',
     'license': '',
-    'summary': 'Extends Project to match better the Kanban working practices',
-    'description': """Extends Project to match better the Kanban working practices, compatible with Odoo 8 or later""",
+    'summary': 'Extends Project to match better the Software Development Kanban working practices',
+    'description': """Extends Project to match better the Software Development Kanban working practices, compatible with Odoo 8 or later""",
     'author': 'Joel Ortiz',
     'website': '',
     'depends': ['project', 'hr'],
