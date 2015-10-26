@@ -2,8 +2,9 @@
 `task_extension.py` extends the `project.task` Odoo model adding
 extra functionality to provide a better kanban process experience.
 """
+from openerp.models import Environment
 from openerp import models, fields, api
-from datetime import datetime as dt, timedelta as td
+from datetime import datetime as dt
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as dtf
 
 
@@ -16,6 +17,29 @@ class ProjectTaskHistoryExtension(models.Model):
     _inherit = 'project.task.history'
 
     date = fields.Datetime('Date', select=True)
+    working_hours = fields.Integer('Working Hours')
+
+    def _update_working_hours_on_install(self, cr, uid, ids=None, context=None):
+        """
+        To be called on installation of the module.
+
+        Updates previous instances of this model and inserts the
+        ``working_hours`` value.
+        """
+        env = Environment(cr, uid, {'uid': uid})
+        task_model = env['project.task']
+        history_model = env['project.task.history']
+        task_records = task_model.search([], order='id asc')
+        for t in task_records:
+            history_records = history_model.search([['task_id', '=', t.id]],
+                                                   order='id asc')
+            for i in range(len(history_records)-1):
+                if not history_records[i].working_hours:
+                    history_records[i].write({
+                        'working_hours': t.get_working_hours(
+                            dt.strptime(history_records[i].date, dtf),
+                            dt.strptime(history_records[i+1].date, dtf)
+                        )[0]})
 
 
 class ProjectTaskTypeExtension(models.Model):
@@ -52,13 +76,55 @@ class ProjectTaskTypeExtension(models.Model):
         ['done', 'Done'],
         ['other', 'Other']
     ]
-    _sources = [
-        ['internal', 'Internal'],
-        ['external', 'External']
-    ]
 
     stage_type = fields.Selection(_types, 'Type', default='other')
-    source = fields.Selection(_sources, 'Source', default='internal')
+
+    def _update_stages_on_install(self, cr, uid, ids=None, context=None):
+        """
+        To be called on installation of the module.
+
+        Updates the default Project stages and adds some new ones to
+        have a default stage structure.
+        """
+        # Migrate original project stages
+        env = Environment(cr, uid, {'uid': uid})
+        stage_model = env['project.task.type']
+        analysis = stage_model.search([['name', '=', 'Analysis']])
+        spec = stage_model.search([['name', '=', 'Specification']])
+        design = stage_model.search([['name', '=', 'Design']])
+        dev = stage_model.search([['name', '=', 'Development']])
+        test = stage_model.search([['name', '=', 'Testing']])
+        merge = stage_model.search([['name', '=', 'Merge']])
+        done = stage_model.search([['name', '=', 'Done']])
+        cancel = stage_model.search([['name', '=', 'Cancelled']])
+        if analysis:
+            analysis.write({'sequence': 5, 'stage_type': 'analysis'})
+        if spec:
+            spec.write({'stage_type': 'analysis'})
+        if design:
+            design.write({'stage_type': 'analysis'})
+        if dev:
+            dev.write({'sequence': 13, 'stage_type': 'dev'})
+        if test:
+            test.write({'sequence': 15, 'stage_type': 'review'})
+        if merge:
+            merge.write({'sequence': 16, 'stage_type': 'queue'})
+        if done:
+            done.write({'stage_type': 'done'})
+        if cancel:
+            cancel.write({'stage_type': 'done'})
+        # Add new stages
+        new = stage_model.search([['name', 'in', [
+            'Backlog', 'Input Queue', 'Development Ready', 'Test Ready']]])
+        if not new:
+            stage_model.create({'name': 'Backlog', 'sequence': 1,
+                                'case_default': True, 'stage_type': 'backlog'})
+            stage_model.create({'name': 'Input Queue', 'sequence': 2,
+                                'case_default': True, 'stage_type': 'input'})
+            stage_model.create({'name': 'Development Ready', 'sequence': 12,
+                                'case_default': True, 'stage_type': 'queue'})
+            stage_model.create({'name': 'Test Ready', 'sequence': 14,
+                                'case_default': True, 'stage_type': 'queue'})
 
 
 class ProjectTaskExtension(models.Model):
@@ -71,7 +137,6 @@ class ProjectTaskExtension(models.Model):
     total_time = fields.Integer(
         string='Lead Time', compute='_compute_total_time',
         store=False, readonly=True)
-    # TODO internal_time = fields.Integer(string='Internal Lead Time', compute='_compute_internal_time', store=False, readonly=True)
     stage_time = fields.Integer(
         string='Stage Working Hours', compute='_compute_stage_time',
         store=False, readonly=True)
@@ -82,11 +147,17 @@ class ProjectTaskExtension(models.Model):
     def _store_history(self):
         """
         Overwrites Odoo `_store_history` so it stores a `datetime` on
-        the ``date`` field instead of a `date`
+        the ``date`` field instead of a `date` and stores the working
+        hours elapsed from the previous log.
 
         :returns: ``True``
         :rtype: bool
         """
+        history_model = self.env['project.task.history']
+        history_records = history_model.search([['task_id', '=', self.id]], order="date desc")
+        if history_records:
+            history_records[0].write({'working_hours': self.get_working_hours(
+                dt.strptime(history_records[0].date, dtf), dt.now())[0]})
         self.env['project.task.history'].create({
             'task_id': self.id,
             'remaining_hours': self.remaining_hours,
@@ -187,24 +258,16 @@ class ProjectTaskExtension(models.Model):
                 'Attribute Error',
                 'expected datetime, received %s' % type(date))
         task_history_records = self.env['project.task.history'].search([
-            ['task_id', '=', self.id], ['date', '<=', date.strftime(dtf)]],
+            ['task_id', '=', self.id], ['date', '<=', date.strftime(dtf)],
+            ['type_id', '=', stage_id]],
             order='date asc')
         result = 0
-        if task_history_records:
-            add_time = False
-            date_start = False
-            for th in task_history_records:
-                if add_time and isinstance(date_start, dt):
-                    date_end = dt.strptime(th.date, dtf)
-                    result += self.get_working_hours(date_start, date_end)[0]
-                if stage_id == th.type_id.id:
-                    add_time = True
-                    date_start = dt.strptime(th.date, dtf)
-                else:
-                    add_time = False
-            if add_time:
-                result += self.get_working_hours(date_start, date)[0]
-        elif self.stage_id.id == stage_id:
-            date_start = dt.strptime(self.date_last_stage_update, dtf)
+        for th in task_history_records:
+            result += th.working_hours if th.working_hours else 0
+        if self.stage_id.id == stage_id:
+            date_start = dt.strptime(
+                task_history_records[len(task_history_records)-1].date, dtf) \
+                if len(task_history_records) > 1 \
+                else dt.strptime(self.date_last_stage_update, dtf)
             result += self.get_working_hours(date_start, date)[0]
         return result

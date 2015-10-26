@@ -1,0 +1,8 @@
+<openerp>
+    <data noupdate="1">
+        <function model="project.task.history"
+                  name="_update_working_hours_on_install"/>
+        <function model="project.task.type"
+                  name="_update_stages_on_install"/>
+    </data>
+</openerp>

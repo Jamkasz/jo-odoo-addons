@@ -67,12 +67,14 @@ class TestTaskExtension(common.SingleTransactionCase):
         self.log_model.create({
             'task_id': self.task2.id,
             'type_id': self.stage.id,
-            'date': '1988-10-24 09:00:00'
+            'date': '1988-10-24 09:00:00',
+            'working_hours': 7
         })
         self.log_model.create({
             'task_id': self.task2.id,
             'type_id': self.stage2.id,
-            'date': '1988-10-24 17:00:00'
+            'date': '1988-10-24 17:00:00',
+            'working_hours': 1
         })
         self.log_model.create({
             'task_id': self.task2.id,

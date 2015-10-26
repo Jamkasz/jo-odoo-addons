@@ -14,7 +14,12 @@
                            options='{"no_open": True}'
                            context="{'default_groups_ref': ['base.group_user',
                            'base.group_partner_manager',
-                           'project.group_project_user']}"/>/>
+                           'project.group_project_user']}"/>
+                    <field name="partner_id"
+                           options='{"no_open": True}'
+                           context="{'default_groups_ref': ['base.group_user',
+                           'base.group_partner_manager',
+                           'project.group_project_user']}"/>
                 </xpath>
             </field>
         </record>
@@ -38,7 +43,6 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='sequence']" position="before">
                     <field name="stage_type"/>
-                    <field name="source"/>
                 </xpath>
             </field>
         </record>

@@ -10,7 +10,7 @@
     'website': '',
     'depends': ['project', 'hr'],
     'data': ['views/project_task_view.xml',
-             'data/project_data.xml'],
+             'data/update_data.xml'],
     'demo': [],
     'css': [],
     'js': [],
