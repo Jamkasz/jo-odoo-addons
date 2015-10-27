@@ -78,20 +78,6 @@
                         </div>
                     </div>
                 </xpath>
-                <!--<xpath expr="//img[@class='oe_kanban_avatar pull-right']" position="replace">-->
-                    <!--<t t-if="record.user_id.raw_value">-->
-                        <!--<img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)" t-att-title="'Developer: ' + record.reviewer_id.value" width="30" height="30" class="oe_kanban_avatar pull-right"/>-->
-                    <!--</t>-->
-                    <!--<t t-if="record.reviewer_id.raw_value">-->
-                        <!--<img t-att-src="kanban_image('res.users', 'image_small', record.reviewer_id.raw_value)" t-att-title="record.reviewer_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>-->
-                    <!--</t>-->
-                    <!--<t t-if="record.analyst_id.raw_value">-->
-                        <!--<img t-att-src="kanban_image('res.users', 'image_small', record.analyst_id.raw_value)" t-att-title="record.analyst_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>-->
-                    <!--</t>-->
-                    <!--<t t-if="record.partner_id.raw_value">-->
-                        <!--<img t-att-src="kanban_image('res.partner', 'image_small', record.partner_id.raw_value)" t-att-title="record.partner_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>-->
-                    <!--</t>-->
-                <!--</xpath>-->
             </field>
         </record>
 

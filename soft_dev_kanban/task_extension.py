@@ -271,3 +271,29 @@ class ProjectTaskExtension(models.Model):
                 else dt.strptime(self.date_last_stage_update, dtf)
             result += self.get_working_hours(date_start, date)[0]
         return result
+
+    @api.multi
+    def write(self, vals):
+        """
+        Extends Odoo `write` method to log the Work In Progress per user
+        when a task changes stage.
+
+        It also records automatically the ``date_end`` of a task if the
+        new stage is of type `done` and the ``date_start`` if a task is
+        of type ``input``.
+        """
+        if vals.get('stage_id'):
+            stage_model = self.env['project.task.type']
+            for task in self:
+                if task.stage_id.stage_type == 'dev' and task.user_id:
+                    task.user_id.add_wip()
+                elif task.stage_id.stage_type == 'review' and task.reviewer_id:
+                    task.reviewer_id.add_wip()
+                elif task.stage_id.stage_type == 'analysis' and task.analyst_id:
+                    task.analyst_id.add_wip()
+            stage = stage_model.browse(vals.get('stage_id'))
+            if stage.stage_type == 'input':
+                vals['date_start'] = dt.now().strftime(dtf)
+            elif stage.stage_type == 'done':
+                vals['date_end'] = dt.now().strftime(dtf)
+        super(ProjectTaskExtension, self).write(vals)
