@@ -1,0 +1,13 @@
+.task_avatar_group {
+    width: 100%;
+    display: inline-block;
+    margin-top: -15px;
+}
+.task_avatar_grid {
+    width: 25%;
+    float: left;
+    text-align: center;
+}
+.openerp .oe_kanban_view .oe_kanban_content .task_avatar_grid:first-child{
+    margin: 0;
+}
