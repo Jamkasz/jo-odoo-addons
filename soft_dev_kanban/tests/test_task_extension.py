@@ -82,4 +82,4 @@ class TestTaskExtension(common.SingleTransactionCase):
             'date': '1988-10-25 10:00:00'
         })
         self.assertEqual(self.task2.stage_working_hours(
-            self.stage.id, dt.strptime('1988-10-25 19:00:00', dtf))[0], 15)
+            self.stage.id, dt.strptime('1988-10-25 18:00:00', dtf))[0], 15)
