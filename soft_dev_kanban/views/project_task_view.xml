@@ -1,5 +1,11 @@
 <openerp>
     <data>
+        <template id="assets_backend" name="soft_dev_kanban assets" inherit_id="web.assets_backend">
+            <xpath expr="." position="inside">
+                <link rel="stylesheet" href="/soft_dev_kanban/static/src/css/soft_dev_kanban.css"/>
+            </xpath>
+        </template>
+
         <record id="project_task_view_form_ext" model="ir.ui.view">
             <field name="name">project.task.form.ext</field>
             <field name="model">project.task</field>
@@ -21,6 +27,71 @@
                            'base.group_partner_manager',
                            'project.group_project_user']}"/>
                 </xpath>
+            </field>
+        </record>
+
+        <record id="project_task_view_kanban_ext" model="ir.ui.view">
+            <field name="name">project.task.kanban.ext</field>
+            <field name="model">project.task</field>
+            <field name="inherit_id" ref="project.view_task_kanban"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='user_id']" position="after">
+                    <field name="reviewer_id"/>
+                    <field name="analyst_id"/>
+                    <field name="partner_id"/>
+                </xpath>
+                <xpath expr="//div[@class='oe_kanban_bottom_right']" position="replace">
+                    <div class="oe_kanban_bottom_right">
+                        <div class="pull-left" groups="base.group_user">
+                            <field name="kanban_state" widget="kanban_state_selection"/>
+                            <field name="priority" widget="priority"/>
+                        </div>
+                    </div>
+                    <div class="task_avatar_group">
+                        <div class="task_avatar_grid">
+                            <p><small>Customer</small><br/>
+                            <t t-if="record.partner_id.raw_value">
+                                <img t-att-src="kanban_image('res.partner', 'image_small', record.partner_id.raw_value)" t-att-title="record.partner_id.value" width="30" height="30" class="oe_kanban_avatar"/>
+                            </t>
+                            </p>
+                        </div>
+                        <div class="task_avatar_grid">
+                            <p><small>Analyst</small><br/>
+                            <t t-if="record.analyst_id.raw_value">
+                                <img t-att-src="kanban_image('res.users', 'image_small', record.analyst_id.raw_value)" t-att-title="record.analyst_id.value" width="30" height="30" class="oe_kanban_avatar"/>
+                            </t>
+                            </p>
+                        </div>
+                        <div class="task_avatar_grid">
+                            <p><small>Dev</small><br/>
+                            <t t-if="record.user_id.raw_value">
+                                <img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)" t-att-title="record.reviewer_id.value" width="30" height="30" class="oe_kanban_avatar"/>
+                            </t>
+                            </p>
+                        </div>
+                        <div class="task_avatar_grid">
+                            <p><small>Reviewer</small><br/>
+                            <t t-if="record.reviewer_id.raw_value">
+                                <img t-att-src="kanban_image('res.users', 'image_small', record.reviewer_id.raw_value)" t-att-title="record.reviewer_id.value" width="30" height="30" class="oe_kanban_avatar"/>
+                            </t>
+                            </p>
+                        </div>
+                    </div>
+                </xpath>
+                <!--<xpath expr="//img[@class='oe_kanban_avatar pull-right']" position="replace">-->
+                    <!--<t t-if="record.user_id.raw_value">-->
+                        <!--<img t-att-src="kanban_image('res.users', 'image_small', record.user_id.raw_value)" t-att-title="'Developer: ' + record.reviewer_id.value" width="30" height="30" class="oe_kanban_avatar pull-right"/>-->
+                    <!--</t>-->
+                    <!--<t t-if="record.reviewer_id.raw_value">-->
+                        <!--<img t-att-src="kanban_image('res.users', 'image_small', record.reviewer_id.raw_value)" t-att-title="record.reviewer_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>-->
+                    <!--</t>-->
+                    <!--<t t-if="record.analyst_id.raw_value">-->
+                        <!--<img t-att-src="kanban_image('res.users', 'image_small', record.analyst_id.raw_value)" t-att-title="record.analyst_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>-->
+                    <!--</t>-->
+                    <!--<t t-if="record.partner_id.raw_value">-->
+                        <!--<img t-att-src="kanban_image('res.partner', 'image_small', record.partner_id.raw_value)" t-att-title="record.partner_id.value" width="24" height="24" class="oe_kanban_avatar pull-right"/>-->
+                    <!--</t>-->
+                <!--</xpath>-->
             </field>
         </record>
 
