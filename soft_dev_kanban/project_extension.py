@@ -3,7 +3,7 @@
 extra functionality to provide a better kanban process experience.
 """
 from openerp.models import Environment
-from openerp import models, fields, api
+from openerp import models, fields, api, _
 from datetime import datetime as dt
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as dtf
 
@@ -143,6 +143,16 @@ class ProjectTaskExtension(models.Model):
     analyst_id = fields.Many2one('res.users', 'Analyst', select=True,
                                  track_visibility='onchange')
 
+    @api.model
+    def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
+        """
+        Extends Odoo method to add ``analyst_id`` to the automatic follow
+        users of the task.
+        """
+        if auto_follow_fields is None:
+            auto_follow_fields = ['user_id', 'reviewer_id', 'analyst_id']
+        return super(ProjectTaskExtension, self)._message_get_auto_subscribe_fields(updated_fields, auto_follow_fields)
+
     @api.one
     def _store_history(self):
         """
@@ -272,6 +282,45 @@ class ProjectTaskExtension(models.Model):
             result += self.get_working_hours(date_start, date)[0]
         return result
 
+    @api.onchange('analyst_id')
+    def onchange_analyst_id(self):
+        res = {}
+        if self.stage_id.stage_type == 'analysis':
+            if self.analyst_id.current_wip_items() >= \
+                    self.analyst_id.wip_limit:
+                res = {'warning': {
+                    'title': 'Warning',
+                    'message': self.analyst_id.name +
+                               ' is overloaded (too much WIP)'
+                }}
+        return res
+
+    @api.onchange('user_id')
+    def onchange_user_id(self):
+        res = {}
+        if self.stage_id.stage_type == 'dev':
+            if self.user_id.current_wip_items() >= self.user_id.wip_limit:
+                res = {'warning': {
+                    'title': 'Warning',
+                    'message': self.user_id.name +
+                               ' is overloaded (too much WIP)'
+                }}
+        return res
+
+    @api.onchange('reviewer_id')
+    def onchange_reviewer_id(self):
+        res = {}
+        if self.stage_id.stage_type == 'review':
+            if self.reviewer_id.current_wip_items() >= \
+                    self.reviewer_id.wip_limit:
+                res = {'warning': {
+                    'title': 'Warning',
+                    'message': self.reviewer_id.name +
+                               ' is overloaded (too much WIP)'
+                }}
+        return res
+
+
     @api.multi
     def write(self, vals):
         """
@@ -296,7 +345,36 @@ class ProjectTaskExtension(models.Model):
                 vals['date_start'] = dt.now().strftime(dtf)
             elif stage.stage_type == 'done':
                 vals['date_end'] = dt.now().strftime(dtf)
-        super(ProjectTaskExtension, self).write(vals)
+        return super(ProjectTaskExtension, self).write(vals)
+
+        # if vals.get('stage_id'):
+        #     stage_model = self.env['project.task.type']
+        #     stage = stage_model.browse(vals.get('stage_id'))
+        #     if stage.stage_type == 'dev':
+        #         for task in self:
+        #             if task.user_id:
+        #                 if task.user_id.current_wip_items() >= task.user_id.wip_limit:
+        #                     res = {'warning': {
+        #                         'title': 'Warning',
+        #                         'message': 'You are overloading ' + task.user_id.name
+        #                     }}
+        #     elif stage.stage_type == 'analysis':
+        #         for task in self:
+        #             if task.analyst_id:
+        #                 if task.analyst_id.current_wip_items() >= task.analyst_id.wip_limit:
+        #                     res = {'warning': {
+        #                         'title': 'Warning',
+        #                         'message': 'You are overloading ' + task.analyst_id.name
+        #                     }}
+        #     elif stage.stage_type == 'review':
+        #         for task in self:
+        #             if task.reviewer_id:
+        #                 if task.reviewer_id.current_wip_items() >= task.reviewer_id.wip_limit:
+        #                     res = {'warning': {
+        #                         'title': 'Warning',
+        #                         'message': 'You are overloading ' + task.reviewer_id.name
+        #                     }}
+        # return res
 
 
 class ProjectExtension(models.Model):
