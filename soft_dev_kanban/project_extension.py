@@ -297,3 +297,38 @@ class ProjectTaskExtension(models.Model):
             elif stage.stage_type == 'done':
                 vals['date_end'] = dt.now().strftime(dtf)
         super(ProjectTaskExtension, self).write(vals)
+
+
+class ProjectExtension(models.Model):
+    """
+    Extends `project.project` Odoo model to add kanban metrics
+    """
+    _name = 'project.project'
+    _inherit = 'project.project'
+
+    average_lead_time = fields.Float(
+        string='Average Lead Time', compute='_compute_average_time',
+        store=False, readonly=True)
+
+    @api.one
+    def _compute_average_time(self):
+        """
+        Computes the average lead time of the related finished
+        tasks.
+
+        If the project has a working hours calendar, it returns
+        only the working hours average.
+
+        :returns: time in hours
+        :rtype: float
+        """
+        tasks = 0
+        total_time = 0
+        for task in self.task_ids:
+            if task.date_end:
+                tasks += 1
+                total_time += task.total_time
+        if tasks:
+            self.average_lead_time = total_time/tasks
+        else:
+            self.average_lead_time = 0

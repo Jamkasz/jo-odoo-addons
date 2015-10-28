@@ -104,5 +104,16 @@
             </field>
         </record>
 
+        <record id="project_project_view_form_ext" model="ir.ui.view">
+            <field name="name">project.project.form.ext</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='planned_hours']" position="before">
+                    <field name="average_lead_time"/>
+                </xpath>
+            </field>
+        </record>
+
     </data>
 </openerp>

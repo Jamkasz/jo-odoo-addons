@@ -4,11 +4,11 @@ from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as dtf
 from openerp.models import except_orm
 
 
-class TestTaskExtension(common.SingleTransactionCase):
+class TestProjectExtension(common.SingleTransactionCase):
 
     @classmethod
     def setUpClass(cls):
-        super(TestTaskExtension, cls).setUpClass()
+        super(TestProjectExtension, cls).setUpClass()
         cls.user_model = cls.env['res.users']
         cls.task_model = cls.env['project.task']
         cls.stage_model = cls.env['project.task.type']

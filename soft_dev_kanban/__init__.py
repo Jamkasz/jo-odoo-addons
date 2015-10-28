@@ -1,3 +1,3 @@
 __author__ = 'joelortiz'
 import base_extension
-import task_extension
+import project_extension
