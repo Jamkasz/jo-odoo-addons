@@ -132,3 +132,23 @@ class TestProjectExtension(common.SingleTransactionCase):
     def test_12_write_extension_automatically_records_date_end(self):
         self.task3.stage_id = self.done.id
         self.assertTrue(self.task3.date_end)
+
+    def test_13_check_wip_limit_dev(self):
+        self.user.wip_limit = 0
+        self.task3.stage_id = self.dev.id
+        self.assertEqual(self.task3.check_wip_limit(self.dev.id)[0],
+                         'TEST USER is overloaded')
+
+    def test_14_check_wip_limit_analysis(self):
+        self.task3.stage_id = self.analysis.id
+        self.assertEqual(self.task3.check_wip_limit(self.analysis.id)[0],
+                         'TEST USER is overloaded')
+
+    def test_15_check_wip_limit_review(self):
+        self.task3.stage_id = self.review.id
+        self.assertEqual(self.task3.check_wip_limit(self.review.id)[0],
+                         'TEST USER is overloaded')
+
+    def test_16_check_wip_limit_other(self):
+        self.task3.stage_id = self.queue.id
+        self.assertFalse(self.task3.check_wip_limit(self.queue.id)[0])

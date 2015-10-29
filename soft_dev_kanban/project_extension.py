@@ -347,34 +347,28 @@ class ProjectTaskExtension(models.Model):
                 vals['date_end'] = dt.now().strftime(dtf)
         return super(ProjectTaskExtension, self).write(vals)
 
-        # if vals.get('stage_id'):
-        #     stage_model = self.env['project.task.type']
-        #     stage = stage_model.browse(vals.get('stage_id'))
-        #     if stage.stage_type == 'dev':
-        #         for task in self:
-        #             if task.user_id:
-        #                 if task.user_id.current_wip_items() >= task.user_id.wip_limit:
-        #                     res = {'warning': {
-        #                         'title': 'Warning',
-        #                         'message': 'You are overloading ' + task.user_id.name
-        #                     }}
-        #     elif stage.stage_type == 'analysis':
-        #         for task in self:
-        #             if task.analyst_id:
-        #                 if task.analyst_id.current_wip_items() >= task.analyst_id.wip_limit:
-        #                     res = {'warning': {
-        #                         'title': 'Warning',
-        #                         'message': 'You are overloading ' + task.analyst_id.name
-        #                     }}
-        #     elif stage.stage_type == 'review':
-        #         for task in self:
-        #             if task.reviewer_id:
-        #                 if task.reviewer_id.current_wip_items() >= task.reviewer_id.wip_limit:
-        #                     res = {'warning': {
-        #                         'title': 'Warning',
-        #                         'message': 'You are overloading ' + task.reviewer_id.name
-        #                     }}
-        # return res
+    @api.one
+    def check_wip_limit(self, stage_id):
+        """
+        Checks the WIP item limit for the analyst, developer or reviewer
+        of the task and returns a warning message if any of them
+        is overloaded.
+        """
+        stage_model = self.env['project.task.type']
+        stage = stage_model.browse(stage_id)
+        if stage.stage_type == 'dev':
+            if self.user_id:
+                if self.user_id.current_wip_items() > self.user_id.wip_limit:
+                    return self.user_id.name + ' is overloaded'
+        elif stage.stage_type == 'analysis':
+            if self.analyst_id:
+                if self.analyst_id.current_wip_items() > self.analyst_id.wip_limit:
+                    return self.analyst_id.name + ' is overloaded'
+        elif stage.stage_type == 'review':
+            if self.reviewer_id:
+                if self.reviewer_id.current_wip_items() > self.reviewer_id.wip_limit:
+                    return self.reviewer_id.name + ' is overloaded'
+        return False
 
 
 class ProjectExtension(models.Model):

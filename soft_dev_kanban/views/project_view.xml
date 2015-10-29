@@ -3,6 +3,7 @@
         <template id="assets_backend" name="soft_dev_kanban assets" inherit_id="web.assets_backend">
             <xpath expr="." position="inside">
                 <link rel="stylesheet" href="/soft_dev_kanban/static/src/css/soft_dev_kanban.css"/>
+                <script type="text/javascript" src="/soft_dev_kanban/static/src/js/soft_dev_kanban.js"></script>
             </xpath>
         </template>
 
