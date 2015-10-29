@@ -34,4 +34,22 @@ openerp.soft_dev_kanban = function (instance) {
         }
     });
 
+    instance.soft_dev_kanban.KanbanView = instance.web_kanban.KanbanView.extend({
+        on_record_moved : function(record, old_group, old_index, new_group, new_index) {
+            var self = this;
+            this._super(record, old_group, old_index, new_group, new_index);
+            if (old_group != new_group){
+                if (this.dataset.model === 'project.task'){
+                    this.dataset.call('check_wip_limit', [record.id, new_group.value]).done(function (r){
+                       if (r[0] != false){
+                           self.do_warn('Warning', r);
+                       }
+                    });
+                }
+            }
+        }
+    });
+
+    instance.web.views.add('kanban', 'instance.soft_dev_kanban.KanbanView');
+
 };

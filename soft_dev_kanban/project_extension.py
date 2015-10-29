@@ -286,7 +286,7 @@ class ProjectTaskExtension(models.Model):
     def onchange_analyst_id(self):
         res = {}
         if self.stage_id.stage_type == 'analysis':
-            if self.analyst_id.current_wip_items() >= \
+            if self.analyst_id.current_wip_items()[0] >= \
                     self.analyst_id.wip_limit:
                 res = {'warning': {
                     'title': 'Warning',
@@ -299,7 +299,7 @@ class ProjectTaskExtension(models.Model):
     def onchange_user_id(self):
         res = {}
         if self.stage_id.stage_type == 'dev':
-            if self.user_id.current_wip_items() >= self.user_id.wip_limit:
+            if self.user_id.current_wip_items()[0] >= self.user_id.wip_limit:
                 res = {'warning': {
                     'title': 'Warning',
                     'message': self.user_id.name +
@@ -311,7 +311,7 @@ class ProjectTaskExtension(models.Model):
     def onchange_reviewer_id(self):
         res = {}
         if self.stage_id.stage_type == 'review':
-            if self.reviewer_id.current_wip_items() >= \
+            if self.reviewer_id.current_wip_items()[0] >= \
                     self.reviewer_id.wip_limit:
                 res = {'warning': {
                     'title': 'Warning',
@@ -358,15 +358,18 @@ class ProjectTaskExtension(models.Model):
         stage = stage_model.browse(stage_id)
         if stage.stage_type == 'dev':
             if self.user_id:
-                if self.user_id.current_wip_items() > self.user_id.wip_limit:
+                if self.user_id.current_wip_items()[0] > \
+                        self.user_id.wip_limit:
                     return self.user_id.name + ' is overloaded'
         elif stage.stage_type == 'analysis':
             if self.analyst_id:
-                if self.analyst_id.current_wip_items() > self.analyst_id.wip_limit:
+                if self.analyst_id.current_wip_items()[0] > \
+                        self.analyst_id.wip_limit:
                     return self.analyst_id.name + ' is overloaded'
         elif stage.stage_type == 'review':
             if self.reviewer_id:
-                if self.reviewer_id.current_wip_items() > self.reviewer_id.wip_limit:
+                if self.reviewer_id.current_wip_items()[0] > \
+                        self.reviewer_id.wip_limit:
                     return self.reviewer_id.name + ' is overloaded'
         return False
 
