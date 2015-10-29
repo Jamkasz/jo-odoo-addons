@@ -15,7 +15,7 @@ class TestBaseExtension(common.SingleTransactionCase):
         cls.backlog = cls.stage_model.create({'name': 'TEST BACKLOG',
                                               'stage_type': 'backlog'})
         cls.input = cls.stage_model.create({'name': 'TEST INPUT',
-                                            'stage_type': 'input'})
+                                            'stage_type': 'queue'})
         cls.queue = cls.stage_model.create({'name': 'TEST BUFFER',
                                             'stage_type': 'queue'})
         cls.analysis = cls.stage_model.create({'name': 'TEST ANALYSIS',

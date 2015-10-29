@@ -20,17 +20,17 @@ class TestProjectExtension(common.SingleTransactionCase):
         cls.backlog = cls.stage_model.create({'name': 'TEST BACKLOG',
                                               'stage_type': 'backlog'})
         cls.input = cls.stage_model.create({'name': 'TEST INPUT',
-                                            'stage_type': 'input'})
+                                            'stage_type': 'queue'})
         cls.queue = cls.stage_model.create({'name': 'TEST BUFFER',
                                             'stage_type': 'queue'})
         cls.analysis = cls.stage_model.create({'name': 'TEST ANALYSIS',
-                                            'stage_type': 'analysis'})
+                                               'stage_type': 'analysis'})
         cls.dev = cls.stage_model.create({'name': 'TEST DEVELOPMENT',
-                                            'stage_type': 'dev'})
+                                          'stage_type': 'dev'})
         cls.review = cls.stage_model.create({'name': 'TEST REVIEW',
                                             'stage_type': 'review'})
         cls.done = cls.stage_model.create({'name': 'TEST DONE',
-                                            'stage_type': 'done'})
+                                           'stage_type': 'done'})
         stages = [cls.backlog, cls.input, cls.queue, cls.analysis, cls.dev,
                   cls.review, cls.done]
 
@@ -46,17 +46,22 @@ class TestProjectExtension(common.SingleTransactionCase):
             'resource_calendar_id': cls.cal.id})
         cls.task = cls.task_model.create({
             'name': 'TEST TASK', 'project_id': cls.project.id,
-            'date_start': '1988-10-24 11:20:00',
-            'date_end': '1988-10-24 12:30:00'})
+            'date_started': '1988-10-24 11:20:00',
+            'date_finished': '1988-10-24 12:30:00'})
         cls.task2 = cls.task_model.create({
             'name': 'TEST TASK2', 'project_id': cls.project.id,
-            'date_start': '1988-10-24 09:00:00',
-            'date_end': '1988-10-25 19:00:00'})
+            'date_started': '1988-10-24 09:00:00',
+            'date_finished': '1988-10-25 19:00:00'})
         cls.task3 = cls.task_model.create({
             'name': 'TEST TASK3', 'project_id': cls.project.id,
             'stage_id': cls.backlog.id,
-            'date_start': False,
-            'date_end': False})
+            'date_started': False,
+            'date_finished': False})
+        cls.task4 = cls.task_model.create({
+            'name': 'TEST TASK4', 'project_id': cls.project.id,
+            'stage_id': cls.backlog.id,
+            'date_started': False,
+            'date_finished': False})
         cls.user = cls.user_model.create({'name': 'TEST USER',
                                           'login': 'testuser'})
 
@@ -111,7 +116,7 @@ class TestProjectExtension(common.SingleTransactionCase):
 
     def test_08_write_extension_automatically_records_date_start(self):
         self.task3.stage_id = self.input.id
-        self.assertTrue(self.task3.date_start)
+        self.assertTrue(self.task3.date_started)
 
     def test_09_write_extension_adds_analyst_wip(self):
         self.task3.analyst_id = self.user.id
@@ -131,7 +136,7 @@ class TestProjectExtension(common.SingleTransactionCase):
 
     def test_12_write_extension_automatically_records_date_end(self):
         self.task3.stage_id = self.done.id
-        self.assertTrue(self.task3.date_end)
+        self.assertTrue(self.task3.date_finished)
 
     def test_13_check_wip_limit_dev(self):
         self.user.wip_limit = 0
@@ -152,3 +157,22 @@ class TestProjectExtension(common.SingleTransactionCase):
     def test_16_check_wip_limit_other(self):
         self.task3.stage_id = self.queue.id
         self.assertFalse(self.task3.check_wip_limit(self.queue.id)[0])
+
+    def test_17_update_date_started(self):
+        self.log_model.create({
+            'task_id': self.task4.id,
+            'type_id': self.input.id,
+            'date': '1988-10-24 09:00:00',
+            'working_hours': 7
+        })
+        self.task4.update_date_started()
+        self.assertEqual(self.task4.date_started, '1988-10-24 09:00:00')
+
+    def test_18_update_date_finished(self):
+        self.log_model.create({
+            'task_id': self.task4.id,
+            'type_id': self.done.id,
+            'date': '1988-10-25 16:00:00'
+        })
+        self.task4.update_date_finished()
+        self.assertEqual(self.task4.date_finished, '1988-10-25 16:00:00')

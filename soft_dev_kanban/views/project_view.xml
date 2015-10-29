@@ -16,13 +16,12 @@
                     <field name="total_time"/>
                     <field name="stage_time"/>
                 </xpath>
+                <xpath expr="//field[@name='categ_ids']" position="after">
+                    <field name="date_started"/>
+                    <field name="date_finished"/>
+                </xpath>
                 <xpath expr="//field[@name='reviewer_id']" position="after">
                     <field name="analyst_id"
-                           options='{"no_open": True}'
-                           context="{'default_groups_ref': ['base.group_user',
-                           'base.group_partner_manager',
-                           'project.group_project_user']}"/>
-                    <field name="partner_id"
                            options='{"no_open": True}'
                            context="{'default_groups_ref': ['base.group_user',
                            'base.group_partner_manager',
