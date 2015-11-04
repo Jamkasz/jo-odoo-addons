@@ -144,21 +144,48 @@ class TestProjectExtension(common.SingleTransactionCase):
         self.assertEqual(self.task3.check_wip_limit(self.dev.id)[0],
                          'TEST USER is overloaded')
 
-    def test_14_check_wip_limit_analysis(self):
+    def test_14_onchange_user_id_returns_warning(self):
+        self.assertDictEqual(
+            self.task3.onchange_user_id(),
+            {
+                'warning':
+                    {'message': 'TEST USER is overloaded (too much WIP)',
+                     'title': 'Warning'}
+            })
+
+    def test_15_check_wip_limit_analysis(self):
         self.task3.stage_id = self.analysis.id
         self.assertEqual(self.task3.check_wip_limit(self.analysis.id)[0],
                          'TEST USER is overloaded')
 
-    def test_15_check_wip_limit_review(self):
+    def test_16_onchange_analyst_id_returns_warning(self):
+        self.assertDictEqual(
+            self.task3.onchange_analyst_id(),
+            {
+                'warning':
+                    {'message': 'TEST USER is overloaded (too much WIP)',
+                     'title': 'Warning'}
+            })
+
+    def test_17_check_wip_limit_review(self):
         self.task3.stage_id = self.review.id
         self.assertEqual(self.task3.check_wip_limit(self.review.id)[0],
                          'TEST USER is overloaded')
 
-    def test_16_check_wip_limit_other(self):
+    def test_18_onchange_reviewer_id_returns_warning(self):
+        self.assertDictEqual(
+            self.task3.onchange_reviewer_id(),
+            {
+                'warning':
+                    {'message': 'TEST USER is overloaded (too much WIP)',
+                     'title': 'Warning'}
+            })
+
+    def test_19_check_wip_limit_other(self):
         self.task3.stage_id = self.queue.id
         self.assertFalse(self.task3.check_wip_limit(self.queue.id)[0])
 
-    def test_17_update_date_started(self):
+    def test_20_update_date_started(self):
         self.log_model.create({
             'task_id': self.task4.id,
             'type_id': self.input.id,
@@ -168,7 +195,7 @@ class TestProjectExtension(common.SingleTransactionCase):
         self.task4.update_date_started()
         self.assertEqual(self.task4.date_started, '1988-10-24 09:00:00')
 
-    def test_18_update_date_finished(self):
+    def test_21_update_date_finished(self):
         self.log_model.create({
             'task_id': self.task4.id,
             'type_id': self.done.id,
@@ -176,3 +203,6 @@ class TestProjectExtension(common.SingleTransactionCase):
         })
         self.task4.update_date_finished()
         self.assertEqual(self.task4.date_finished, '1988-10-25 16:00:00')
+
+    def test_22_compute_average_time(self):
+        self.assertEqual(self.project.average_lead_time, 10)
