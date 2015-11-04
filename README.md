@@ -9,9 +9,10 @@ Extension of the Project Kanban features to match better the Software Developmen
 
 Features:
 - [X] Task Lead Times
-- [ ] Project Average Lead Time
-- [ ] Employee Average Throughput
-- [ ] Employee Load Management
+- [X] Project Average Lead Time
+- [X] Employee Average Throughput
+- [X] Employee Load Management
+- [ ] Task Blocked Reason
 
 ## To use
 Just add the addon you want into your Odoo addons path and install it
