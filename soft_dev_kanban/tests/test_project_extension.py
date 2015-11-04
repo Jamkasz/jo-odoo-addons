@@ -206,3 +206,9 @@ class TestProjectExtension(common.SingleTransactionCase):
 
     def test_22_compute_average_time(self):
         self.assertEqual(self.project.average_lead_time, 10)
+
+    def test_23_compute_average_time_empty_project(self):
+        project = self.project_model.create({
+            'name': 'TEST PROJECT 2',
+            'resource_calendar_id': self.cal.id})
+        self.assertEqual(project.average_lead_time, 0)
