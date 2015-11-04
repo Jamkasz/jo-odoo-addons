@@ -3,7 +3,7 @@
 extra functionality to provide a better kanban process experience.
 """
 from openerp.models import Environment
-from openerp import models, fields, api, _
+from openerp import models, fields, api
 from datetime import datetime as dt
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as dtf
 
@@ -19,7 +19,8 @@ class ProjectTaskHistoryExtension(models.Model):
     date = fields.Datetime('Date', select=True)
     working_hours = fields.Integer('Working Hours')
 
-    def _update_working_hours_on_install(self, cr, uid, ids=None, context=None):
+    def _update_working_hours_on_install(self, cr, uid,
+                                         ids=None, context=None):
         """
         To be called on installation of the module.
 
@@ -33,12 +34,12 @@ class ProjectTaskHistoryExtension(models.Model):
         for t in task_records:
             history_records = history_model.search([['task_id', '=', t.id]],
                                                    order='id asc')
-            for i in range(len(history_records)-1):
+            for i in range(len(history_records) - 1):
                 if not history_records[i].working_hours:
                     history_records[i].write({
                         'working_hours': t.get_working_hours(
                             dt.strptime(history_records[i].date, dtf),
-                            dt.strptime(history_records[i+1].date, dtf)
+                            dt.strptime(history_records[i + 1].date, dtf)
                         )[0]})
 
 
@@ -143,14 +144,18 @@ class ProjectTaskExtension(models.Model):
     date_finished = fields.Datetime('Date Finished')
 
     @api.model
-    def _message_get_auto_subscribe_fields(self, updated_fields, auto_follow_fields=None):
+    def _message_get_auto_subscribe_fields(self, updated_fields,
+                                           auto_follow_fields=None):
         """
         Extends Odoo method to add ``analyst_id`` to the automatic follow
         users of the task.
         """
         if auto_follow_fields is None:
             auto_follow_fields = ['user_id', 'reviewer_id', 'analyst_id']
-        return super(ProjectTaskExtension, self)._message_get_auto_subscribe_fields(updated_fields, auto_follow_fields)
+        return super(
+            ProjectTaskExtension, self
+        )._message_get_auto_subscribe_fields(updated_fields,
+                                             auto_follow_fields)
 
     @api.one
     def _store_history(self):
@@ -250,7 +255,7 @@ class ProjectTaskExtension(models.Model):
             return int(self.project_id.resource_calendar_id.get_working_hours(
                 date_start, date_end)[0])
         else:
-            return int((date_end - date_start).total_seconds()/3600)
+            return int((date_end - date_start).total_seconds() / 3600)
 
     @api.one
     def stage_working_hours(self, stage_id, date):
@@ -279,7 +284,7 @@ class ProjectTaskExtension(models.Model):
             result += th.working_hours if th.working_hours else 0
         if self.stage_id.id == stage_id:
             date_start = dt.strptime(
-                task_history_records[len(task_history_records)-1].date, dtf) \
+                task_history_records[len(task_history_records) - 1].date, dtf) \
                 if len(task_history_records) > 1 \
                 else dt.strptime(self.date_last_stage_update, dtf)
             result += self.get_working_hours(date_start, date)[0]
@@ -293,12 +298,12 @@ class ProjectTaskExtension(models.Model):
         """
         res = {}
         if self.stage_id.stage_type == 'analysis':
-            if self.analyst_id.current_wip_items()[0] >= \
-                    self.analyst_id.wip_limit:
+            if self.analyst_id.current_wip_items(
+            )[0] >= self.analyst_id.wip_limit:
                 res = {'warning': {
                     'title': 'Warning',
-                    'message': self.analyst_id.name +
-                               ' is overloaded (too much WIP)'
+                    'message': '{0} is overloaded (too much WIP)'.format(
+                        self.analyst_id.name)
                 }}
         return res
 
@@ -313,8 +318,8 @@ class ProjectTaskExtension(models.Model):
             if self.user_id.current_wip_items()[0] >= self.user_id.wip_limit:
                 res = {'warning': {
                     'title': 'Warning',
-                    'message': self.user_id.name +
-                               ' is overloaded (too much WIP)'
+                    'message': "{0} is overloaded (too much WIP)".format(
+                        self.user_id.name)
                 }}
         return res
 
@@ -330,11 +335,10 @@ class ProjectTaskExtension(models.Model):
                     self.reviewer_id.wip_limit:
                 res = {'warning': {
                     'title': 'Warning',
-                    'message': self.reviewer_id.name +
-                               ' is overloaded (too much WIP)'
+                    'message': '{0} is overloaded (too much WIP)'.format(
+                        self.reviewer_id.name)
                 }}
         return res
-
 
     @api.multi
     def write(self, vals):
@@ -449,6 +453,6 @@ class ProjectExtension(models.Model):
                 tasks += 1
                 total_time += task.total_time
         if tasks:
-            self.average_lead_time = total_time/tasks
+            self.average_lead_time = total_time / tasks
         else:
             self.average_lead_time = 0
