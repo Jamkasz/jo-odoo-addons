@@ -109,6 +109,9 @@
             <field name="model">project.project</field>
             <field name="inherit_id" ref="project.edit_project"/>
             <field name="arch" type="xml">
+                <xpath expr="//field[@name='state']" position="before">
+                    <button name="update_task_dates" string="Update Task Dates" type="object" groups="project.group_project_manager"/>
+                </xpath>
                 <xpath expr="//field[@name='planned_hours']" position="before">
                     <field name="average_lead_time"/>
                 </xpath>

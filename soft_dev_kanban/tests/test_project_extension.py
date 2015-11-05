@@ -44,6 +44,10 @@ class TestProjectExtension(common.SingleTransactionCase):
             'name': 'TEST PROJECT',
             'type_ids': stages,
             'resource_calendar_id': cls.cal.id})
+        cls.project2 = cls.project_model.create({
+            'name': 'TEST 2 PROJECT',
+            'type_ids': stages,
+            'resource_calendar_id': cls.cal.id})
         cls.task = cls.task_model.create({
             'name': 'TEST TASK', 'project_id': cls.project.id,
             'date_in': '1988-10-24 11:20:00',
@@ -59,6 +63,16 @@ class TestProjectExtension(common.SingleTransactionCase):
             'date_out': False})
         cls.task4 = cls.task_model.create({
             'name': 'TEST TASK4', 'project_id': cls.project.id,
+            'stage_id': cls.backlog.id,
+            'date_in': False,
+            'date_out': False})
+        cls.task5 = cls.task_model.create({
+            'name': 'TEST TASK5', 'project_id': cls.project2.id,
+            'stage_id': cls.backlog.id,
+            'date_in': False,
+            'date_out': False})
+        cls.task6 = cls.task_model.create({
+            'name': 'TEST TASK6', 'project_id': cls.project2.id,
             'stage_id': cls.backlog.id,
             'date_in': False,
             'date_out': False})
@@ -190,7 +204,11 @@ class TestProjectExtension(common.SingleTransactionCase):
             'task_id': self.task4.id,
             'type_id': self.input.id,
             'date': '1988-10-24 09:00:00',
-            'working_hours': 7
+        })
+        self.log_model.create({
+            'task_id': self.task4.id,
+            'type_id': self.dev.id,
+            'date': '1988-10-24 15:00:00',
         })
         self.task4.update_date_in()
         self.assertEqual(self.task4.date_in, '1988-10-24 09:00:00')
@@ -212,3 +230,35 @@ class TestProjectExtension(common.SingleTransactionCase):
             'name': 'TEST PROJECT 2',
             'resource_calendar_id': self.cal.id})
         self.assertEqual(project.average_lead_time, 0)
+
+    def test_24_update_task_dates_no_history_logs(self):
+        self.project2.update_task_dates()
+        for task in self.project2.task_ids:
+            self.assertFalse(task.date_in)
+            self.assertFalse(task.date_out)
+
+    def test_25_update_task_dates(self):
+        self.log_model.create({
+            'task_id': self.task5.id,
+            'type_id': self.input.id,
+            'date': '1988-10-24 09:00:00',
+        })
+        self.log_model.create({
+            'task_id': self.task6.id,
+            'type_id': self.input.id,
+            'date': '1988-10-24 09:00:00',
+        })
+        self.log_model.create({
+            'task_id': self.task5.id,
+            'type_id': self.done.id,
+            'date': '1988-10-24 17:00:00',
+        })
+        self.log_model.create({
+            'task_id': self.task6.id,
+            'type_id': self.done.id,
+            'date': '1988-10-24 17:00:00',
+        })
+        self.project2.update_task_dates()
+        for task in self.project2.task_ids:
+            self.assertEqual(task.date_in, '1988-10-24 09:00:00')
+            self.assertEqual(task.date_out, '1988-10-24 17:00:00')

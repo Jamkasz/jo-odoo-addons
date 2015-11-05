@@ -403,7 +403,7 @@ class ProjectTaskExtension(models.Model):
         history_records = history_model.search([
             ['task_id', '=', self.id],
             ['type_id.stage_type', '!=', 'backlog'],
-            ['type_id.stage_type', '!=', False]], order="date desc")
+            ['type_id.stage_type', '!=', False]], order="date asc")
         if history_records:
             self.date_in = history_records[0].date
         return True
@@ -456,3 +456,13 @@ class ProjectExtension(models.Model):
             self.average_lead_time = total_time / tasks
         else:
             self.average_lead_time = 0
+
+    @api.one
+    def update_task_dates(self):
+        """
+        Updates ``date_in`` and ``date_out`` of every task related to
+        the project.
+        """
+        self.task_ids.update_date_in()
+        self.task_ids.update_date_out()
+        return True
