@@ -140,8 +140,8 @@ class ProjectTaskExtension(models.Model):
         store=False, readonly=True)
     analyst_id = fields.Many2one('res.users', 'Analyst', select=True,
                                  track_visibility='onchange')
-    date_started = fields.Datetime('Date Started')
-    date_finished = fields.Datetime('Date Finished')
+    date_in = fields.Datetime('Date In')
+    date_out = fields.Datetime('Date Out')
 
     @api.model
     def _message_get_auto_subscribe_fields(self, updated_fields,
@@ -196,13 +196,13 @@ class ProjectTaskExtension(models.Model):
         :returns: time in hours
         :rtype: int
         """
-        if self.date_finished:
-            date_end = dt.strptime(self.date_finished, dtf)
+        if self.date_out:
+            date_end = dt.strptime(self.date_out, dtf)
         else:
             date_end = dt.now()
-        if self.date_started:
+        if self.date_in:
             self.total_time = self.get_working_hours(
-                dt.strptime(self.date_started, dtf), date_end)[0]
+                dt.strptime(self.date_in, dtf), date_end)[0]
         else:
             self.total_time = False
 
@@ -219,8 +219,8 @@ class ProjectTaskExtension(models.Model):
         :returns: time in hours
         :rtype: int
         """
-        if self.date_finished:
-            date_end = dt.strptime(self.date_finished, dtf)
+        if self.date_out:
+            date_end = dt.strptime(self.date_out, dtf)
         else:
             date_end = dt.now()
         stage_id = self.stage_id.id
@@ -346,8 +346,8 @@ class ProjectTaskExtension(models.Model):
         Extends Odoo `write` method to log the Work In Progress per user
         when a task changes stage.
 
-        It also records automatically the ``date_finished`` of a task if
-        the new stage is of type `done` and the ``date_started`` if a
+        It also records automatically the ``date_out`` of a task if
+        the new stage is of type `done` and the ``date_in`` if a
         task is not type ``backlog`` and it doesn't have it already.
         """
         if vals.get('stage_id'):
@@ -361,10 +361,10 @@ class ProjectTaskExtension(models.Model):
                         task.analyst_id:
                     task.analyst_id.add_wip()
             stage = stage_model.browse(vals.get('stage_id'))
-            if stage.stage_type != 'backlog' and not self.date_started:
-                vals['date_started'] = dt.now().strftime(dtf)
-            elif stage.stage_type == 'done' and not self.date_finished:
-                vals['date_finished'] = dt.now().strftime(dtf)
+            if stage.stage_type != 'backlog' and not self.date_in:
+                vals['date_in'] = dt.now().strftime(dtf)
+            elif stage.stage_type == 'done' and not self.date_out:
+                vals['date_out'] = dt.now().strftime(dtf)
         return super(ProjectTaskExtension, self).write(vals)
 
     @api.one
@@ -394,9 +394,9 @@ class ProjectTaskExtension(models.Model):
         return False
 
     @api.one
-    def update_date_started(self):
+    def update_date_in(self):
         """
-        Updates ``date_started`` depending on the `project.task.history`
+        Updates ``date_in`` depending on the `project.task.history`
         logs recorded for the task.
         """
         history_model = self.env['project.task.history']
@@ -405,13 +405,13 @@ class ProjectTaskExtension(models.Model):
             ['type_id.stage_type', '!=', 'backlog'],
             ['type_id.stage_type', '!=', False]], order="date desc")
         if history_records:
-            self.date_started = history_records[0].date
+            self.date_in = history_records[0].date
         return True
 
     @api.one
-    def update_date_finished(self):
+    def update_date_out(self):
         """
-        Updates ``date_finished`` depending on the `project.task.history`
+        Updates ``date_out`` depending on the `project.task.history`
         logs recorded for the task.
         """
         history_model = self.env['project.task.history']
@@ -419,7 +419,7 @@ class ProjectTaskExtension(models.Model):
             ['task_id', '=', self.id],
             ['type_id.stage_type', '=', 'done']], order="date desc")
         if history_records:
-            self.date_finished = history_records[0].date
+            self.date_out = history_records[0].date
         return True
 
 
@@ -449,7 +449,7 @@ class ProjectExtension(models.Model):
         tasks = 0
         total_time = 0
         for task in self.task_ids:
-            if task.date_finished:
+            if task.date_out:
                 tasks += 1
                 total_time += task.total_time
         if tasks:

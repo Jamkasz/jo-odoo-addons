@@ -46,22 +46,22 @@ class TestProjectExtension(common.SingleTransactionCase):
             'resource_calendar_id': cls.cal.id})
         cls.task = cls.task_model.create({
             'name': 'TEST TASK', 'project_id': cls.project.id,
-            'date_started': '1988-10-24 11:20:00',
-            'date_finished': '1988-10-24 12:30:00'})
+            'date_in': '1988-10-24 11:20:00',
+            'date_out': '1988-10-24 12:30:00'})
         cls.task2 = cls.task_model.create({
             'name': 'TEST TASK2', 'project_id': cls.project.id,
-            'date_started': '1988-10-24 09:00:00',
-            'date_finished': '1988-10-25 19:00:00'})
+            'date_in': '1988-10-24 09:00:00',
+            'date_out': '1988-10-25 19:00:00'})
         cls.task3 = cls.task_model.create({
             'name': 'TEST TASK3', 'project_id': cls.project.id,
             'stage_id': cls.backlog.id,
-            'date_started': False,
-            'date_finished': False})
+            'date_in': False,
+            'date_out': False})
         cls.task4 = cls.task_model.create({
             'name': 'TEST TASK4', 'project_id': cls.project.id,
             'stage_id': cls.backlog.id,
-            'date_started': False,
-            'date_finished': False})
+            'date_in': False,
+            'date_out': False})
         cls.user = cls.user_model.create({'name': 'TEST USER',
                                           'login': 'testuser'})
 
@@ -116,7 +116,7 @@ class TestProjectExtension(common.SingleTransactionCase):
 
     def test_08_write_extension_automatically_records_date_start(self):
         self.task3.stage_id = self.input.id
-        self.assertTrue(self.task3.date_started)
+        self.assertTrue(self.task3.date_in)
 
     def test_09_write_extension_adds_analyst_wip(self):
         self.task3.analyst_id = self.user.id
@@ -136,7 +136,7 @@ class TestProjectExtension(common.SingleTransactionCase):
 
     def test_12_write_extension_automatically_records_date_end(self):
         self.task3.stage_id = self.done.id
-        self.assertTrue(self.task3.date_finished)
+        self.assertTrue(self.task3.date_out)
 
     def test_13_check_wip_limit_dev(self):
         self.user.wip_limit = 0
@@ -185,24 +185,24 @@ class TestProjectExtension(common.SingleTransactionCase):
         self.task3.stage_id = self.queue.id
         self.assertFalse(self.task3.check_wip_limit(self.queue.id)[0])
 
-    def test_20_update_date_started(self):
+    def test_20_update_date_in(self):
         self.log_model.create({
             'task_id': self.task4.id,
             'type_id': self.input.id,
             'date': '1988-10-24 09:00:00',
             'working_hours': 7
         })
-        self.task4.update_date_started()
-        self.assertEqual(self.task4.date_started, '1988-10-24 09:00:00')
+        self.task4.update_date_in()
+        self.assertEqual(self.task4.date_in, '1988-10-24 09:00:00')
 
-    def test_21_update_date_finished(self):
+    def test_21_update_date_out(self):
         self.log_model.create({
             'task_id': self.task4.id,
             'type_id': self.done.id,
             'date': '1988-10-25 16:00:00'
         })
-        self.task4.update_date_finished()
-        self.assertEqual(self.task4.date_finished, '1988-10-25 16:00:00')
+        self.task4.update_date_out()
+        self.assertEqual(self.task4.date_out, '1988-10-25 16:00:00')
 
     def test_22_compute_average_time(self):
         self.assertEqual(self.project.average_lead_time, 10)
