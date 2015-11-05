@@ -19,7 +19,8 @@ class ProjectTaskHistoryExtension(models.Model):
     date = fields.Datetime('Date', select=True)
     working_hours = fields.Integer('Working Hours')
 
-    def _update_working_hours_on_install(self, cr, uid, ids=None, context=None):
+    def _update_working_hours_on_install(self, cr, uid,
+                                         ids=None, context=None):
         """
         To be called on installation of the module.
 
@@ -33,12 +34,12 @@ class ProjectTaskHistoryExtension(models.Model):
         for t in task_records:
             history_records = history_model.search([['task_id', '=', t.id]],
                                                    order='id asc')
-            for i in range(len(history_records)-1):
+            for i in range(len(history_records) - 1):
                 if not history_records[i].working_hours:
                     history_records[i].write({
                         'working_hours': t.get_working_hours(
                             dt.strptime(history_records[i].date, dtf),
-                            dt.strptime(history_records[i+1].date, dtf)
+                            dt.strptime(history_records[i + 1].date, dtf)
                         )[0]})
 
 
@@ -50,8 +51,6 @@ class ProjectTaskTypeExtension(models.Model):
 
     `backlog` type allows to have a buffer to store ideas to pull
     into the workflow whenever necessary.
-    `input` type marks the starting point ot fhe workflow, a task
-    ``date_start`` will be updated when reaching this stage.
     `queue` type is used as buffers within the workflow. Time spent
     here counts towards the lean time anyway, but it will be ignored
     when computing employee workload.
@@ -68,7 +67,6 @@ class ProjectTaskTypeExtension(models.Model):
     _inherit = 'project.task.type'
     _types = [
         ['backlog', 'Backlog'],
-        ['input', 'Input Queue/ToDo'],
         ['queue', 'Queue/Buffer'],
         ['analysis', 'Analysis'],
         ['dev', 'Development'],
@@ -120,7 +118,7 @@ class ProjectTaskTypeExtension(models.Model):
             stage_model.create({'name': 'Backlog', 'sequence': 1,
                                 'case_default': True, 'stage_type': 'backlog'})
             stage_model.create({'name': 'Input Queue', 'sequence': 2,
-                                'case_default': True, 'stage_type': 'input'})
+                                'case_default': True, 'stage_type': 'queue'})
             stage_model.create({'name': 'Development Ready', 'sequence': 12,
                                 'case_default': True, 'stage_type': 'queue'})
             stage_model.create({'name': 'Test Ready', 'sequence': 14,
@@ -142,6 +140,22 @@ class ProjectTaskExtension(models.Model):
         store=False, readonly=True)
     analyst_id = fields.Many2one('res.users', 'Analyst', select=True,
                                  track_visibility='onchange')
+    date_in = fields.Datetime('Date In')
+    date_out = fields.Datetime('Date Out')
+
+    @api.model
+    def _message_get_auto_subscribe_fields(self, updated_fields,
+                                           auto_follow_fields=None):
+        """
+        Extends Odoo method to add ``analyst_id`` to the automatic follow
+        users of the task.
+        """
+        if auto_follow_fields is None:
+            auto_follow_fields = ['user_id', 'reviewer_id', 'analyst_id']
+        return super(
+            ProjectTaskExtension, self
+        )._message_get_auto_subscribe_fields(updated_fields,
+                                             auto_follow_fields)
 
     @api.one
     def _store_history(self):
@@ -154,7 +168,8 @@ class ProjectTaskExtension(models.Model):
         :rtype: bool
         """
         history_model = self.env['project.task.history']
-        history_records = history_model.search([['task_id', '=', self.id]], order="date desc")
+        history_records = history_model.search([['task_id', '=', self.id]],
+                                               order="date desc")
         if history_records:
             history_records[0].write({'working_hours': self.get_working_hours(
                 dt.strptime(history_records[0].date, dtf), dt.now())[0]})
@@ -181,12 +196,15 @@ class ProjectTaskExtension(models.Model):
         :returns: time in hours
         :rtype: int
         """
-        if self.date_end:
-            date_end = dt.strptime(self.date_end, dtf)
+        if self.date_out:
+            date_end = dt.strptime(self.date_out, dtf)
         else:
             date_end = dt.now()
-        self.total_time = self.get_working_hours(
-            dt.strptime(self.date_start, dtf), date_end)[0]
+        if self.date_in:
+            self.total_time = self.get_working_hours(
+                dt.strptime(self.date_in, dtf), date_end)[0]
+        else:
+            self.total_time = False
 
     @api.one
     def _compute_stage_time(self):
@@ -201,8 +219,8 @@ class ProjectTaskExtension(models.Model):
         :returns: time in hours
         :rtype: int
         """
-        if self.date_end:
-            date_end = dt.strptime(self.date_end, dtf)
+        if self.date_out:
+            date_end = dt.strptime(self.date_out, dtf)
         else:
             date_end = dt.now()
         stage_id = self.stage_id.id
@@ -237,7 +255,7 @@ class ProjectTaskExtension(models.Model):
             return int(self.project_id.resource_calendar_id.get_working_hours(
                 date_start, date_end)[0])
         else:
-            return int((date_end - date_start).total_seconds()/3600)
+            return int((date_end - date_start).total_seconds() / 3600)
 
     @api.one
     def stage_working_hours(self, stage_id, date):
@@ -266,11 +284,61 @@ class ProjectTaskExtension(models.Model):
             result += th.working_hours if th.working_hours else 0
         if self.stage_id.id == stage_id:
             date_start = dt.strptime(
-                task_history_records[len(task_history_records)-1].date, dtf) \
+                task_history_records[len(task_history_records) - 1].date, dtf) \
                 if len(task_history_records) > 1 \
                 else dt.strptime(self.date_last_stage_update, dtf)
             result += self.get_working_hours(date_start, date)[0]
         return result
+
+    @api.onchange('analyst_id')
+    def onchange_analyst_id(self):
+        """
+        Shows a warning message if the analyst assigned is being
+        overloaded above the work in progress limit.
+        """
+        res = {}
+        if self.stage_id.stage_type == 'analysis':
+            if self.analyst_id.current_wip_items(
+            )[0] >= self.analyst_id.wip_limit:
+                res = {'warning': {
+                    'title': 'Warning',
+                    'message': '{0} is overloaded (too much WIP)'.format(
+                        self.analyst_id.name)
+                }}
+        return res
+
+    @api.onchange('user_id')
+    def onchange_user_id(self):
+        """
+        Shows a warning message if the user assigned is being
+        overloaded above the work in progress limit.
+        """
+        res = {}
+        if self.stage_id.stage_type == 'dev':
+            if self.user_id.current_wip_items()[0] >= self.user_id.wip_limit:
+                res = {'warning': {
+                    'title': 'Warning',
+                    'message': "{0} is overloaded (too much WIP)".format(
+                        self.user_id.name)
+                }}
+        return res
+
+    @api.onchange('reviewer_id')
+    def onchange_reviewer_id(self):
+        """
+        Shows a warning message if the user assigned is being
+        overloaded above the work in progress limit.
+        """
+        res = {}
+        if self.stage_id.stage_type == 'review':
+            if self.reviewer_id.current_wip_items()[0] >= \
+                    self.reviewer_id.wip_limit:
+                res = {'warning': {
+                    'title': 'Warning',
+                    'message': '{0} is overloaded (too much WIP)'.format(
+                        self.reviewer_id.name)
+                }}
+        return res
 
     @api.multi
     def write(self, vals):
@@ -278,9 +346,9 @@ class ProjectTaskExtension(models.Model):
         Extends Odoo `write` method to log the Work In Progress per user
         when a task changes stage.
 
-        It also records automatically the ``date_end`` of a task if the
-        new stage is of type `done` and the ``date_start`` if a task is
-        of type ``input``.
+        It also records automatically the ``date_out`` of a task if
+        the new stage is of type `done` and the ``date_in`` if a
+        task is not type ``backlog`` and it doesn't have it already.
         """
         if vals.get('stage_id'):
             stage_model = self.env['project.task.type']
@@ -289,11 +357,112 @@ class ProjectTaskExtension(models.Model):
                     task.user_id.add_wip()
                 elif task.stage_id.stage_type == 'review' and task.reviewer_id:
                     task.reviewer_id.add_wip()
-                elif task.stage_id.stage_type == 'analysis' and task.analyst_id:
+                elif task.stage_id.stage_type == 'analysis' and \
+                        task.analyst_id:
                     task.analyst_id.add_wip()
             stage = stage_model.browse(vals.get('stage_id'))
-            if stage.stage_type == 'input':
-                vals['date_start'] = dt.now().strftime(dtf)
-            elif stage.stage_type == 'done':
-                vals['date_end'] = dt.now().strftime(dtf)
-        super(ProjectTaskExtension, self).write(vals)
+            if stage.stage_type != 'backlog' and not self.date_in:
+                vals['date_in'] = dt.now().strftime(dtf)
+            elif stage.stage_type == 'done' and not self.date_out:
+                vals['date_out'] = dt.now().strftime(dtf)
+        return super(ProjectTaskExtension, self).write(vals)
+
+    @api.one
+    def check_wip_limit(self, stage_id):
+        """
+        Checks the WIP item limit for the analyst, developer or reviewer
+        of the task and returns a warning message if any of them
+        is overloaded.
+        """
+        stage_model = self.env['project.task.type']
+        stage = stage_model.browse(stage_id)
+        if stage.stage_type == 'dev':
+            if self.user_id:
+                if self.user_id.current_wip_items()[0] > \
+                        self.user_id.wip_limit:
+                    return self.user_id.name + ' is overloaded'
+        elif stage.stage_type == 'analysis':
+            if self.analyst_id:
+                if self.analyst_id.current_wip_items()[0] > \
+                        self.analyst_id.wip_limit:
+                    return self.analyst_id.name + ' is overloaded'
+        elif stage.stage_type == 'review':
+            if self.reviewer_id:
+                if self.reviewer_id.current_wip_items()[0] > \
+                        self.reviewer_id.wip_limit:
+                    return self.reviewer_id.name + ' is overloaded'
+        return False
+
+    @api.one
+    def update_date_in(self):
+        """
+        Updates ``date_in`` depending on the `project.task.history`
+        logs recorded for the task.
+        """
+        history_model = self.env['project.task.history']
+        history_records = history_model.search([
+            ['task_id', '=', self.id],
+            ['type_id.stage_type', '!=', 'backlog'],
+            ['type_id.stage_type', '!=', False]], order="date asc")
+        if history_records:
+            self.date_in = history_records[0].date
+        return True
+
+    @api.one
+    def update_date_out(self):
+        """
+        Updates ``date_out`` depending on the `project.task.history`
+        logs recorded for the task.
+        """
+        history_model = self.env['project.task.history']
+        history_records = history_model.search([
+            ['task_id', '=', self.id],
+            ['type_id.stage_type', '=', 'done']], order="date desc")
+        if history_records:
+            self.date_out = history_records[0].date
+        return True
+
+
+class ProjectExtension(models.Model):
+    """
+    Extends `project.project` Odoo model to add kanban metrics
+    """
+    _name = 'project.project'
+    _inherit = 'project.project'
+
+    average_lead_time = fields.Float(
+        string='Average Lead Time', compute='_compute_average_time',
+        store=False, readonly=True)
+
+    @api.one
+    def _compute_average_time(self):
+        """
+        Computes the average lead time of the related finished
+        tasks.
+
+        If the project has a working hours calendar, it returns
+        only the working hours average.
+
+        :returns: time in hours
+        :rtype: float
+        """
+        tasks = 0
+        total_time = 0
+        for task in self.task_ids:
+            if task.date_out:
+                tasks += 1
+                total_time += task.total_time
+        if tasks:
+            self.average_lead_time = total_time / tasks
+        else:
+            self.average_lead_time = 0
+
+    @api.one
+    def update_task_dates(self):
+        """
+        Updates ``date_in`` and ``date_out`` of every task related to
+        the project.
+        """
+        self.task_ids.update_date_in()
+        self.task_ids.update_date_out()
+        return True

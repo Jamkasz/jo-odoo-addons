@@ -3,6 +3,7 @@
         <template id="assets_backend" name="soft_dev_kanban assets" inherit_id="web.assets_backend">
             <xpath expr="." position="inside">
                 <link rel="stylesheet" href="/soft_dev_kanban/static/src/css/soft_dev_kanban.css"/>
+                <script type="text/javascript" src="/soft_dev_kanban/static/src/js/soft_dev_kanban.js"></script>
             </xpath>
         </template>
 
@@ -15,13 +16,12 @@
                     <field name="total_time"/>
                     <field name="stage_time"/>
                 </xpath>
+                <xpath expr="//field[@name='categ_ids']" position="after">
+                    <field name="date_in"/>
+                    <field name="date_out"/>
+                </xpath>
                 <xpath expr="//field[@name='reviewer_id']" position="after">
                     <field name="analyst_id"
-                           options='{"no_open": True}'
-                           context="{'default_groups_ref': ['base.group_user',
-                           'base.group_partner_manager',
-                           'project.group_project_user']}"/>
-                    <field name="partner_id"
                            options='{"no_open": True}'
                            context="{'default_groups_ref': ['base.group_user',
                            'base.group_partner_manager',
@@ -100,6 +100,20 @@
             <field name="arch" type="xml">
                 <xpath expr="//field[@name='sequence']" position="before">
                     <field name="stage_type"/>
+                </xpath>
+            </field>
+        </record>
+
+        <record id="project_project_view_form_ext" model="ir.ui.view">
+            <field name="name">project.project.form.ext</field>
+            <field name="model">project.project</field>
+            <field name="inherit_id" ref="project.edit_project"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='state']" position="before">
+                    <button name="update_task_dates" string="Update Task Dates" type="object" groups="project.group_project_manager"/>
+                </xpath>
+                <xpath expr="//field[@name='planned_hours']" position="before">
+                    <field name="average_lead_time"/>
                 </xpath>
             </field>
         </record>

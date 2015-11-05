@@ -4,12 +4,14 @@
     'version': '0.0.1',
     'category': 'Project Management',
     'license': '',
-    'summary': 'Extends Project to match better the Software Development Kanban working practices',
-    'description': """Extends Project to match better the Software Development Kanban working practices, compatible with Odoo 8 or later""",
+    'summary': 'Extends Project to match better the Software Development '
+               'Kanban working practices',
+    'description': """Extends Project to match better the Software Development
+    Kanban working practices, compatible with Odoo 8 or later""",
     'author': 'Joel Ortiz',
     'website': '',
     'depends': ['project', 'hr'],
-    'data': ['views/project_task_view.xml',
+    'data': ['views/project_view.xml',
              'data/update_data.xml'],
     'demo': [],
     'css': [],
