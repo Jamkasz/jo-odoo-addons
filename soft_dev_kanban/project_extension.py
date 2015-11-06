@@ -111,18 +111,6 @@ class ProjectTaskTypeExtension(models.Model):
             done.write({'stage_type': 'done'})
         if cancel:
             cancel.write({'stage_type': 'done'})
-        # Add new stages
-        new = stage_model.search([['name', 'in', [
-            'Backlog', 'Input Queue', 'Development Ready', 'Test Ready']]])
-        if not new:
-            stage_model.create({'name': 'Backlog', 'sequence': 1,
-                                'case_default': True, 'stage_type': 'backlog'})
-            stage_model.create({'name': 'Input Queue', 'sequence': 2,
-                                'case_default': True, 'stage_type': 'queue'})
-            stage_model.create({'name': 'Development Ready', 'sequence': 12,
-                                'case_default': True, 'stage_type': 'queue'})
-            stage_model.create({'name': 'Test Ready', 'sequence': 14,
-                                'case_default': True, 'stage_type': 'queue'})
 
 
 class ProjectTaskExtension(models.Model):
@@ -354,12 +342,12 @@ class ProjectTaskExtension(models.Model):
             stage_model = self.env['project.task.type']
             for task in self:
                 if task.stage_id.stage_type == 'dev' and task.user_id:
-                    task.user_id.add_wip()
+                    task.user_id.add_finished_item()
                 elif task.stage_id.stage_type == 'review' and task.reviewer_id:
-                    task.reviewer_id.add_wip()
+                    task.reviewer_id.add_finished_item()
                 elif task.stage_id.stage_type == 'analysis' and \
                         task.analyst_id:
-                    task.analyst_id.add_wip()
+                    task.analyst_id.add_finished_item()
             stage = stage_model.browse(vals.get('stage_id'))
             if stage.stage_type != 'backlog' and not self.date_in:
                 vals['date_in'] = dt.now().strftime(dtf)

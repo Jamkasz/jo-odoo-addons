@@ -14,14 +14,14 @@ class ResUsersExtension(models.Model):
     _name = 'res.users'
     _inherit = 'res.users'
 
-    wip_finished = fields.Integer('WIP Items Finished Today', default=0)
-    total_wip_days = fields.Integer('Total Days Processed', default=0)
-    wip_average = fields.Float('WIP Items per Day Average', default=0)
+    wi_finished = fields.Integer('Work Items Finished Today', default=0)
+    total_days = fields.Integer('Total Days Processed', default=0)
+    throughput = fields.Float('Work Items per Day Average', default=0)
     wip_limit = fields.Integer('WIP Items Limit', default=2)
     date_last_wip_update = fields.Date('Last WIP update')
 
     @api.one
-    def add_wip(self):
+    def add_finished_item(self):
         """
         If the last WIP update was done today, it just adds another
         item to the number of finished tasks.
@@ -33,12 +33,12 @@ class ResUsersExtension(models.Model):
         """
         if self.date_last_wip_update == date.today().strftime(DF) or \
                 not self.date_last_wip_update:
-            self.wip_finished += 1
+            self.wi_finished += 1
         else:
-            self.wip_average = (self.wip_average * self.total_wip_days +
-                                self.wip_finished) / (self.total_wip_days + 1)
-            self.wip_finished = 1
-            self.total_wip_days += 1
+            self.throughput = (self.throughput * self.total_days +
+                                self.wi_finished) / (self.total_days + 1)
+            self.wi_finished = 1
+            self.total_days += 1
         self.date_last_wip_update = date.today().strftime(DF)
 
     @api.one

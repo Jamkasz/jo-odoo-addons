@@ -136,17 +136,17 @@ class TestProjectExtension(common.SingleTransactionCase):
         self.task3.analyst_id = self.user.id
         self.task3.stage_id = self.analysis.id
         self.task3.stage_id = self.dev.id
-        self.assertEqual(self.user.wip_finished, 1)
+        self.assertEqual(self.user.wi_finished, 1)
 
     def test_10_write_extension_adds_dev_wip(self):
         self.task3.user_id = self.user.id
         self.task3.stage_id = self.review.id
-        self.assertEqual(self.user.wip_finished, 2)
+        self.assertEqual(self.user.wi_finished, 2)
 
     def test_11_write_extension_adds_reviewer_wip(self):
         self.task3.reviewer_id = self.user.id
         self.task3.stage_id = self.queue.id
-        self.assertEqual(self.user.wip_finished, 3)
+        self.assertEqual(self.user.wi_finished, 3)
 
     def test_12_write_extension_automatically_records_date_end(self):
         self.task3.stage_id = self.done.id

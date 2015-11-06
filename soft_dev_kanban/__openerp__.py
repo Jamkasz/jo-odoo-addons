@@ -13,7 +13,7 @@
     'depends': ['project', 'hr'],
     'data': ['views/project_view.xml',
              'data/update_data.xml'],
-    'demo': [],
+    'demo': ['data/fixtures.xml'],
     'css': [],
     'js': [],
     'qweb': [],

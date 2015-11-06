@@ -4,5 +4,34 @@
                   name="_update_working_hours_on_install"/>
         <function model="project.task.type"
                   name="_update_stages_on_install"/>
+
+        <record id="project_stage_backlog" model="project.task.type">
+            <field name="sequence">1</field>
+            <field name="name">Backlog</field>
+            <field name="legend_blocked">Not validated</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">backlog</field>
+        </record>
+
+        <record id="project_stage_input" model="project.task.type">
+            <field name="sequence">2</field>
+            <field name="name">Input Queue</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">queue</field>
+        </record>
+
+        <record id="project_stage_dev_queue" model="project.task.type">
+            <field name="sequence">12</field>
+            <field name="name">Development Ready</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">queue</field>
+        </record>
+
+        <record id="project_stage_test_queue" model="project.task.type">
+            <field name="sequence">14</field>
+            <field name="name">Test Ready</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">queue</field>
+        </record>
     </data>
 </openerp>
