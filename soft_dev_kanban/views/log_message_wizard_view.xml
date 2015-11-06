@@ -1,0 +1,22 @@
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="view_log_message_form">
+            <field name="name">log.mesage.wizard.form.view</field>
+            <field name="model">log.message.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Log Message Wizard Form" version="7.0">
+                    <group>
+                        <field name="res_model" invisible="1"/>
+                        <field name="res_id" invisible="1"/>
+                        <field name="subject" readonly="1"/>
+                        <field name="message"/>
+                    </group>
+                    <footer>
+                        <button string="Submit" type="object" name="log_message" class="oe_highlight"/>
+                        <button string="Close" special="cancel" class="oe_link"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</openerp>
