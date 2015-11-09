@@ -405,7 +405,7 @@ class ProjectTaskExtension(models.Model):
         history_model = self.env['project.task.history']
         history_records = history_model.search([
             ['task_id', '=', self.id],
-            ['type_id.stage_type', '=', 'done']], order="date desc")
+            ['type_id.stage_type', '=', 'done']], order="date asc")
         if history_records:
             self.date_out = history_records[0].date
         return True
@@ -434,12 +434,14 @@ class ProjectExtension(models.Model):
         :returns: time in hours
         :rtype: float
         """
+        task_model = self.env['project.task']
+        task_ids = task_model.search([
+            ['project_id', '=', self.id], ['date_out', '!=', False]])
         tasks = 0
         total_time = 0
-        for task in self.task_ids:
-            if task.date_out:
-                tasks += 1
-                total_time += task.total_time
+        for task in task_ids:
+            tasks += 1
+            total_time += task.total_time
         if tasks:
             self.average_lead_time = total_time / tasks
         else:
@@ -451,6 +453,9 @@ class ProjectExtension(models.Model):
         Updates ``date_in`` and ``date_out`` of every task related to
         the project.
         """
-        self.task_ids.update_date_in()
-        self.task_ids.update_date_out()
+        task_model = self.env['project.task']
+        task_ids = task_model.search([
+            ['project_id', '=', self.id]])
+        task_ids.update_date_in()
+        task_ids.update_date_out()
         return True

@@ -27,7 +27,7 @@
             <field name="date_last_wip_update">2000-10-10 00:00:00</field>
         </record>
 
-        <!-- Demo Project and Tasks for WIP management tests -->
+        <!-- Demo Project and Tasks for integration tests -->
 
         <record id="sdk_project_demo" model="project.project">
             <field name="date_start" eval="time.strftime('%Y-%m-01 10:00:00')"/>
@@ -39,6 +39,7 @@
             <field name="type_ids" eval="[(4, ref('project_stage_backlog')),
             (4,ref('project_stage_input')),(4,ref('project_stage_dev_queue')),
             (4,ref('project_stage_test_queue'))]"/>
+            <field name="resource_calendar_id" ref="resource.timesheet_group1"/>
         </record>
 
         <record id="sdk_project_task_1" model="project.task">
@@ -55,6 +56,46 @@
             <field name="name">WIP Management</field>
             <field name="stage_id" ref="project_stage_backlog"/>
             <field name="color">3</field>
+        </record>
+
+        <record id="sdk_project_task_3" model="project.task">
+            <field name="priority">0</field>
+            <field name="project_id" ref="sdk_project_demo"/>
+            <field name="name">Tasks Lead Time</field>
+            <field name="stage_id" ref="project.project_tt_deployment"/>
+            <field name="color">3</field>
+        </record>
+
+        <record id="sdk_project_task_3_history_1" model="project.task.history">
+            <field name="task_id" ref="sdk_project_task_3"/>
+            <field name="type_id" ref="project_stage_dev_queue"/>
+            <field name="date">'2015-10-19 08:00:00'</field>
+            <field name="working_hours">2</field>
+        </record>
+
+        <record id="sdk_project_task_3_history_2" model="project.task.history">
+            <field name="task_id" ref="sdk_project_task_3"/>
+            <field name="type_id" ref="project.project_tt_development"/>
+            <field name="date">'2015-10-19 10:00:00'</field>
+            <field name="working_hours">6</field>
+        </record>
+
+        <record id="sdk_project_task_3_history_3" model="project.task.history">
+            <field name="task_id" ref="sdk_project_task_3"/>
+            <field name="type_id" ref="project.project_tt_deployment"/>
+            <field name="date">'2015-10-19 17:00:00'</field>
+        </record>
+
+        <record id="sdk_project_demo_2" model="project.project">
+            <field name="date_start" eval="time.strftime('%Y-%m-01 10:00:00')"/>
+            <field name="state">open</field>
+            <field name="name">Upgrade to Odoo 9</field>
+            <field name="color">3</field>
+            <field name="alias_model">project.task</field>
+            <field name="type_ids" eval="[(4, ref('project_stage_backlog')),
+            (4,ref('project_stage_input')),(4,ref('project_stage_dev_queue')),
+            (4,ref('project_stage_test_queue'))]"/>
+            <field name="resource_calendar_id" ref="resource.timesheet_group1"/>
         </record>
 
     </data>
