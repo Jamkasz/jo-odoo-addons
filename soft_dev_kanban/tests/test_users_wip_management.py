@@ -1,5 +1,5 @@
 from openerp.tests import common
-from datetime import date, timedelta as td
+from datetime import date
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 
 

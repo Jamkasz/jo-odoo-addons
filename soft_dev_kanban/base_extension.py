@@ -36,7 +36,7 @@ class ResUsersExtension(models.Model):
             self.wi_finished += 1
         else:
             self.throughput = (self.throughput * self.total_days +
-                                self.wi_finished) / (self.total_days + 1)
+                               self.wi_finished) / (self.total_days + 1)
             self.wi_finished = 1
             self.total_days += 1
         self.date_last_wip_update = date.today().strftime(DF)
