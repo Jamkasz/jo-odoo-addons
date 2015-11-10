@@ -1,4 +1,4 @@
-# My Odoo Extensions [![Build Status](https://travis-ci.org/Jamkasz/jo-odoo-addons.svg)](https://travis-ci.org/Jamkasz/jo-odoo-addons) [![Coverage Status](https://coveralls.io/repos/Jamkasz/jo-odoo-addons/badge.svg?branch=f1262_kanban_metrics&service=github)](https://coveralls.io/github/Jamkasz/jo-odoo-addons?branch=f1262_kanban_metrics)
+# My Odoo Extensions [![Build Status](https://travis-ci.org/Jamkasz/jo-odoo-addons.svg)](https://travis-ci.org/Jamkasz/jo-odoo-addons) [![Coverage Status](https://coveralls.io/repos/Jamkasz/jo-odoo-addons/badge.svg?branch=f1262_kanban_metrics&service=github)](https://coveralls.io/github/Jamkasz/jo-odoo-addons?branch=master)
 Extensions for Odoo not available in the default addons.
 
 ## Planned work
