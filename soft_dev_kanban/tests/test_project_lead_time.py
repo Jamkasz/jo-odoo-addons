@@ -16,7 +16,7 @@ class TestProjectLeadTime(common.SingleTransactionCase):
         self.project._compute_average_time()
         self.assertEqual(self.project.average_lead_time, 0)
 
-    def test_02_update_task_dates_without_history_logs_does_not_update_dates(self):
+    def test_02_update_task_dates_without_history_does_not_update_dates(self):
         self.project.update_task_dates()
         for task in self.project.task_ids:
             self.assertFalse(task.date_in)
@@ -30,5 +30,5 @@ class TestProjectLeadTime(common.SingleTransactionCase):
                 self.assertEqual(task.date_out, '2015-10-19 17:00:00')
 
     def test_04_compute_average_time_returns_average_working_hours(self):
-        self.project2._compute_average_time()
+        self.project2.with_context(tz='Europe/London')._compute_average_time()
         self.assertEqual(self.project2.average_lead_time, 8)
