@@ -31,4 +31,5 @@ class TestProjectLeadTime(common.SingleTransactionCase):
 
     def test_04_compute_average_time_returns_average_working_hours(self):
         self.project2.with_context(tz='Europe/London')._compute_average_time()
-        self.assertEqual(self.project2.average_lead_time, 8)
+        self.assertEqual(self.project2.with_context(
+            tz='Europe/London').average_lead_time, 8)
