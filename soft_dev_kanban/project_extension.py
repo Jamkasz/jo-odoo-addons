@@ -90,7 +90,8 @@ class ProjectTaskTypeExtension(models.Model):
         related_stage_id cannot be of `backlog` or `queue` type.
         """
         if vals.get('related_stage_id'):
-            if self.browse(vals.get('related_stage_id')).stage_type in ['backlog', 'queue']:
+            if self.browse(vals.get('related_stage_id')).stage_type in \
+                    ['backlog', 'queue']:
                 raise models.except_orm(
                     'Stage Type Error',
                     'related_stage_id cannot be of backlog or queue type')
