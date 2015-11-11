@@ -351,7 +351,7 @@ class ProjectTaskExtension(models.Model):
             stage = stage_model.browse(vals.get('stage_id'))
             if stage.stage_type != 'backlog' and not self.date_in:
                 vals['date_in'] = dt.now().strftime(dtf)
-            elif stage.stage_type == 'done' and not self.date_out:
+            if stage.stage_type == 'done' and not self.date_out:
                 vals['date_out'] = dt.now().strftime(dtf)
         return super(ProjectTaskExtension, self).write(vals)
 
