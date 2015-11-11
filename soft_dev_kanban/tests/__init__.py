@@ -5,3 +5,4 @@ import test_task_stage_time
 import test_project_lead_time
 import test_users_wip_management
 import test_task_wip_management
+import test_stage_related_stage
