@@ -123,4 +123,3 @@ class TestTaskWipManagement(common.SingleTransactionCase):
         self.task2.reviewer_id = self.user.id
         self.task2.stage_id = self.review.id
         self.assertFalse(self.task2.onchange_reviewer_id())
-
