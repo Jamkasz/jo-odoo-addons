@@ -46,13 +46,13 @@ class TestStageWipLimit(common.SingleTransactionCase):
         self.analysis.stage_type = 'backlog'
         self.assertFalse(self.analysis.wip_limit)
         self.analysis.stage_type = 'analysis'
-    
+
     def test_05_write_type_to_queue_removes_wip_limit(self):
         self.analysis.wip_limit = 10
         self.analysis.stage_type = 'queue'
         self.assertFalse(self.analysis.wip_limit)
         self.analysis.stage_type = 'analysis'
-    
+
     def test_06_write_type_to_done_removes_wip_limit(self):
         self.analysis.wip_limit = 10
         self.analysis.stage_type = 'done'
