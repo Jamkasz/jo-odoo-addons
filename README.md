@@ -12,7 +12,7 @@ Features:
 - [X] Project Average Lead Time
 - [X] Employee Average Throughput
 - [X] Employee Load Management (individual WIP limit)
-- [ ] Stage WIP limit
+- [X] Stage WIP limit
 - [ ] Team WIP limit
 - [ ] Task Blocked Reason
 

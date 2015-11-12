@@ -96,9 +96,49 @@ class ProjectTaskTypeExtension(models.Model):
                     raise models.except_orm(
                         'Stage Type Error',
                         'Only queue stages can have related_stage_id')
-        if vals.get('stage_type') and vals.get('stage_type') != 'queue':
-            vals['related_stage_id'] = False
+        if vals.get('stage_type'):
+            if vals.get('stage_type') != 'queue':
+                vals['related_stage_id'] = False
+            if vals.get('stage_type') in ['backlog', 'queue', 'done']:
+                    vals['wip_limit'] = False
+        if vals.get('wip_limit'):
+            for stage in self:
+                if stage.stage_type in ['backlog', 'queue', 'done']:
+                    raise models.except_orm(
+                        'Stage WIP Limit Error',
+                        '{0} stages cannot have a WIP limit'.format(
+                            stage.stage_type))
         return super(ProjectTaskTypeExtension, self).write(vals)
+
+    @api.one
+    def check_wip_limit(self):
+        """
+        Checks the WIP item limit for the stage and returns a warning
+        message if it is overloaded.
+        """
+        if self.wip_limit:
+            if self.current_wip_items()[0] > self.wip_limit:
+                return '{0} stage is overloaded'.format(self.name)
+        if self.related_stage_id:
+            return self.related_stage_id.check_wip_limit()[0]
+        return False
+
+    @api.one
+    def current_wip_items(self):
+        """
+        Computes the current number of work in progress items of the
+        stage.
+
+        :returns: number of work items
+        :rtype: int
+        """
+        task_model = self.env['project.task']
+        queues = self.search([['related_stage_id', '=', self.id]])
+        work_items = task_model.search([
+            '|',
+            ['stage_id', '=', self.id],
+            ['stage_id', 'in', [q.id for q in queues]]])
+        return len(work_items)
 
     @api.onchange('related_stage_id')
     def onchange_related_stage_id(self):
@@ -421,6 +461,16 @@ class ProjectTaskExtension(models.Model):
                         self.reviewer_id.wip_limit:
                     return self.reviewer_id.name + ' is overloaded'
         return False
+
+    @api.model
+    def check_stage_limit(self, stage_id):
+        """
+        Checks the WIP item limit for the stage and returns a
+        warning message if it is overloaded.
+        """
+        stage_model = self.env['project.task.type']
+        stage = stage_model.browse(stage_id)
+        return stage.check_wip_limit()[0]
 
     @api.one
     def update_date_in(self):

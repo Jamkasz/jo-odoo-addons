@@ -36,5 +36,21 @@
             <field name="stage_type">queue</field>
             <field name="related_stage_id" ref="project.project_tt_testing"/>
         </record>
+
+        <record id="project_stage_release" model="project.task.type">
+            <field name="sequence">21</field>
+            <field name="name">Release</field>
+            <field name="case_default" eval="False"/>
+            <field name="stage_type">other</field>
+        </record>
+
+        <record id="project_stage_release_ready" model="project.task.type">
+            <field name="sequence">20</field>
+            <field name="name">Release Ready</field>
+            <field name="case_default" eval="False"/>
+            <field name="stage_type">queue</field>
+            <field name="related_stage_id" ref="project_stage_release"/>
+        </record>
+
     </data>
 </openerp>
