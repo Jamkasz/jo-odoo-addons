@@ -25,6 +25,7 @@ class TestTaskWipManagement(common.SingleTransactionCase):
         cls.user = cls.user_model.search([['name', '=', 'SDK Demo User']])
         cls.task = cls.task_model.search(
             [['name', '=', 'Refactor Tests Code']])
+        cls.task2 = cls.task_model.search([['name', '=', 'WIP Management']])
 
     def test_01_write_stage_from_analysis_adds_analyst_wi_finished(self):
         self.task.analyst_id = self.user.id
@@ -43,8 +44,10 @@ class TestTaskWipManagement(common.SingleTransactionCase):
         self.assertEqual(self.user.wi_finished, 3)
 
     def test_04_check_wip_limit_dev_stage_return_warning_if_overloaded(self):
-        self.user.wip_limit = 0
+        self.user.wip_limit = 1
+        self.task2.user_id = self.user.id
         self.task.stage_id = self.dev.id
+        self.task2.stage_id = self.dev.id
         self.assertEqual(self.task.check_wip_limit(self.dev.id)[0],
                          'SDK Demo User is overloaded')
 
@@ -103,3 +106,21 @@ class TestTaskWipManagement(common.SingleTransactionCase):
     def test_13_check_wip_limit_other_stage_does_not_return_warning(self):
         self.task.stage_id = self.backlog.id
         self.assertFalse(self.task.check_wip_limit(self.backlog.id)[0])
+
+    def test_14_check_wip_limit_no_warning_if_limit_is_0(self):
+        self.user.wip_limit = 0
+        self.assertFalse(self.task2.check_wip_limit(self.dev.id)[0])
+
+    def test_15_onchange_user_id_no_warning_if_limit_is_0(self):
+        self.assertFalse(self.task2.onchange_user_id())
+
+    def test_16_onchange_analyst_id_no_warning_if_limit_is_0(self):
+        self.task2.analyst_id = self.user.id
+        self.task2.stage_id = self.analysis.id
+        self.assertFalse(self.task2.onchange_analyst_id())
+
+    def test_17_onchange_reviewer_id_no_warning_if_limit_is_0(self):
+        self.task2.reviewer_id = self.user.id
+        self.task2.stage_id = self.review.id
+        self.assertFalse(self.task2.onchange_reviewer_id())
+
