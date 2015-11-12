@@ -116,6 +116,11 @@ class ProjectTaskTypeExtension(models.Model):
         Checks the WIP item limit for the stage and returns a warning
         message if it is overloaded.
         """
+        if self.wip_limit:
+            if self.current_wip_items()[0] > self.wip_limit:
+                return '{0} stage is overloaded'.format(self.name)
+        if self.related_stage_id:
+            return self.related_stage_id.check_wip_limit()[0]
         return False
 
     @api.one
@@ -456,6 +461,16 @@ class ProjectTaskExtension(models.Model):
                         self.reviewer_id.wip_limit:
                     return self.reviewer_id.name + ' is overloaded'
         return False
+
+    @api.model
+    def check_stage_limit(self, stage_id):
+        """
+        Checks the WIP item limit for the stage and returns a
+        warning message if it is overloaded.
+        """
+        stage_model = self.env['project.task.type']
+        stage = stage_model.browse(stage_id)
+        return stage.check_wip_limit()[0]
 
     @api.one
     def update_date_in(self):

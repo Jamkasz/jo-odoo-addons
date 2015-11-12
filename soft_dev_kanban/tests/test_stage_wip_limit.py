@@ -72,3 +72,29 @@ class TestStageWipLimit(common.SingleTransactionCase):
         self.task.stage_id = self.rel_ready.id
         self.assertEqual(self.rel_ready.current_wip_items()[0], 1)
         self.assertEqual(self.other.current_wip_items()[0], 1)
+
+    def test_09_check_wip_limit_return_warning_if_overloaded(self):
+        self.other.wip_limit = 1
+        self.task.stage_id = self.other.id
+        self.task2.stage_id = self.other.id
+        self.assertEqual(self.other.check_wip_limit()[0],
+                         'Release stage is overloaded')
+        self.assertEqual(self.task_model.check_stage_limit(self.other.id),
+                         'Release stage is overloaded')
+
+    def test_10_check_wip_limit_no_warning_if_limit_is_0(self):
+        self.other.wip_limit = 0
+        self.assertFalse(self.other.check_wip_limit()[0])
+        self.assertFalse(self.task_model.check_stage_limit(self.other.id))
+
+    def test_11_check_wip_limit_return_warning_if_overloaded_using_queue(self):
+        self.other.wip_limit = 1
+        self.task.stage_id = self.rel_ready.id
+        self.assertEqual(self.other.check_wip_limit()[0],
+                         'Release stage is overloaded')
+        self.assertEqual(self.task_model.check_stage_limit(self.other.id),
+                         'Release stage is overloaded')
+        self.assertEqual(self.rel_ready.check_wip_limit()[0],
+                         'Release stage is overloaded')
+        self.assertEqual(self.task_model.check_stage_limit(self.rel_ready.id),
+                         'Release stage is overloaded')
