@@ -104,6 +104,21 @@ class ProjectTaskTypeExtension(models.Model):
             vals['related_stage_id'] = False
         return super(ProjectTaskTypeExtension, self).write(vals)
 
+    @api.onchange('related_stage_id')
+    def onchange_related_stage_id(self):
+        """
+        Shows a warning message if the analyst assigned is being
+        overloaded above the work in progress limit.
+        """
+        res = {}
+        if self.stage_type != 'queue':
+            res['warning'] = {
+                'title': 'Warning',
+                'message': 'Only queue stages can have a related stage'
+            }
+            self.related_stage_id = False
+        return res
+
     def _update_stages_on_install(self, cr, uid, ids=None, context=None):
         """
         To be called on installation of the module.

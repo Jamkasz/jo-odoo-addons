@@ -36,3 +36,13 @@ class TestStageRelatedStage(common.SingleTransactionCase):
     def test_04_write_stage_type_to_non_queue_removes_related_stage(self):
         self.queue.stage_type = 'other'
         self.assertFalse(self.queue.related_stage_id)
+
+    def test_05_onchange_related_stage_id_returns_warning(self):
+        self.assertDictEqual(
+            self.backlog.onchange_related_stage_id(),
+            {
+                'warning':
+                    {'message': 'Only queue stages can have a related stage',
+                     'title': 'Warning'}
+            })
+        self.assertFalse(self.backlog.related_stage_id)
