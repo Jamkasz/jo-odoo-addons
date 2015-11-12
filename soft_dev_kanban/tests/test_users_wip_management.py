@@ -64,8 +64,3 @@ class TestUsersWipManagement(common.SingleTransactionCase):
         self.assertEqual(self.user.current_wip_items()[0], 0)
         self.task.stage_id = self.review.id
         self.assertEqual(self.user.current_wip_items()[0], 1)
-
-    def test_06_current_wip_items_ignores_queue_stages(self):
-        self.task.stage_id = self.queue.id
-        self.task2.stage_id = self.queue.id
-        self.assertEqual(self.user.current_wip_items()[0], 0)

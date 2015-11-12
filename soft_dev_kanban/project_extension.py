@@ -406,6 +406,8 @@ class ProjectTaskExtension(models.Model):
         """
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
+        if stage.stage_type == 'queue' and stage.related_stage_id:
+            stage = stage.related_stage_id
         if stage.stage_type == 'dev':
             if self.user_id:
                 if self.user_id.current_wip_items()[0] > \

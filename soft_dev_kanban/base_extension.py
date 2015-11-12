@@ -54,10 +54,24 @@ class ResUsersExtension(models.Model):
         analysis_items = task_model.search([
             ['stage_id.stage_type', '=', 'analysis'],
             ['analyst_id', '=', self.id]])
+        analysis_queue_items = task_model.search([
+            ['stage_id.stage_type', '=', 'queue'],
+            ['stage_id.related_stage_id.stage_type', '=', 'analysis'],
+            ['analyst_id', '=', self.id]])
         dev_items = task_model.search([
             ['stage_id.stage_type', '=', 'dev'],
+            ['user_id', '=', self.id]])
+        dev_queue_items = task_model.search([
+            ['stage_id.stage_type', '=', 'queue'],
+            ['stage_id.related_stage_id.stage_type', '=', 'dev'],
             ['user_id', '=', self.id]])
         review_items = task_model.search([
             ['stage_id.stage_type', '=', 'review'],
             ['reviewer_id', '=', self.id]])
-        return len(analysis_items) + len(dev_items) + len(review_items)
+        review_queue_items = task_model.search([
+            ['stage_id.stage_type', '=', 'queue'],
+            ['stage_id.related_stage_id.stage_type', '=', 'review'],
+            ['reviewer_id', '=', self.id]])
+        return len(analysis_items) + len(dev_items) + len(review_items) + \
+            len(analysis_queue_items) + len(dev_queue_items) + \
+            len(review_queue_items)

@@ -13,6 +13,10 @@ class TestTaskWipManagement(common.SingleTransactionCase):
         cls.backlog = cls.stage_model.search([['name', '=', 'Backlog']])
         cls.queue = cls.stage_model.search(
             [['name', '=', 'Development Ready']])
+        cls.input = cls.stage_model.search(
+            [['name', '=', 'Input Queue']])
+        cls.testready = cls.stage_model.search(
+            [['name', '=', 'Test Ready']])
         cls.analysis = cls.stage_model.search([['name', '=', 'Analysis']])
         cls.dev = cls.stage_model.search([['name', '=', 'Development']])
         cls.review = cls.stage_model.search([['name', '=', 'Testing']])
@@ -53,12 +57,17 @@ class TestTaskWipManagement(common.SingleTransactionCase):
                      'title': 'Warning'}
             })
 
-    def test_06_check_wip_limit_analysis_return_warning_if_overloaded(self):
+    def test_06_check_wip_limit_dev_queue_return_warning_if_overloaded(self):
+        self.task.stage_id = self.queue.id
+        self.assertEqual(self.task.check_wip_limit(self.queue.id)[0],
+                         'SDK Demo User is overloaded')
+
+    def test_07_check_wip_limit_analysis_return_warning_if_overloaded(self):
         self.task.stage_id = self.analysis.id
         self.assertEqual(self.task.check_wip_limit(self.analysis.id)[0],
                          'SDK Demo User is overloaded')
 
-    def test_07_onchange_analyst_id_returns_warning(self):
+    def test_08_onchange_analyst_id_returns_warning(self):
         self.assertDictEqual(
             self.task.onchange_analyst_id(),
             {
@@ -67,12 +76,17 @@ class TestTaskWipManagement(common.SingleTransactionCase):
                      'title': 'Warning'}
             })
 
-    def test_08_check_wip_limit_review_return_warning_if_overloaded(self):
+    def test_09_check_wip_limit_analysis_queue_warns_if_overloaded(self):
+        self.task.stage_id = self.input.id
+        self.assertEqual(self.task.check_wip_limit(self.input.id)[0],
+                         'SDK Demo User is overloaded')
+
+    def test_10_check_wip_limit_review_return_warning_if_overloaded(self):
         self.task.stage_id = self.review.id
         self.assertEqual(self.task.check_wip_limit(self.review.id)[0],
                          'SDK Demo User is overloaded')
 
-    def test_09_onchange_reviewer_id_returns_warning(self):
+    def test_11_onchange_reviewer_id_returns_warning(self):
         self.assertDictEqual(
             self.task.onchange_reviewer_id(),
             {
@@ -81,6 +95,11 @@ class TestTaskWipManagement(common.SingleTransactionCase):
                      'title': 'Warning'}
             })
 
-    def test_10_check_wip_limit_other_stage_does_not_return_warning(self):
-        self.task.stage_id = self.queue.id
-        self.assertFalse(self.task.check_wip_limit(self.queue.id)[0])
+    def test_12_check_wip_limit_review_queue_warns_if_overloaded(self):
+        self.task.stage_id = self.testready.id
+        self.assertEqual(self.task.check_wip_limit(self.testready.id)[0],
+                         'SDK Demo User is overloaded')
+
+    def test_13_check_wip_limit_other_stage_does_not_return_warning(self):
+        self.task.stage_id = self.backlog.id
+        self.assertFalse(self.task.check_wip_limit(self.backlog.id)[0])
