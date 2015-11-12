@@ -1,5 +1,5 @@
 """
-`task_extension.py` extends the `project.task` Odoo model adding
+`project_extension.py` extends the `project` Odoo module adding
 extra functionality to provide a better kanban process experience.
 """
 from openerp.models import Environment
@@ -79,6 +79,7 @@ class ProjectTaskTypeExtension(models.Model):
     related_stage_id = fields.Many2one(
         'project.task.type', string='Queue To',
         domain=[['stage_type', 'not in', ['backlog', 'queue']]])
+    wip_limit = fields.Integer('WIP Limit')
 
     @api.multi
     def write(self, vals):
@@ -327,7 +328,8 @@ class ProjectTaskExtension(models.Model):
         overloaded above the work in progress limit.
         """
         res = {}
-        if self.stage_id.stage_type == 'analysis':
+        if self.stage_id.stage_type == 'analysis' and \
+                self.analyst_id.wip_limit:
             if self.analyst_id.current_wip_items(
             )[0] >= self.analyst_id.wip_limit:
                 res = {'warning': {
@@ -344,7 +346,7 @@ class ProjectTaskExtension(models.Model):
         overloaded above the work in progress limit.
         """
         res = {}
-        if self.stage_id.stage_type == 'dev':
+        if self.stage_id.stage_type == 'dev' and self.user_id.wip_limit:
             if self.user_id.current_wip_items()[0] >= self.user_id.wip_limit:
                 res = {'warning': {
                     'title': 'Warning',
@@ -360,7 +362,7 @@ class ProjectTaskExtension(models.Model):
         overloaded above the work in progress limit.
         """
         res = {}
-        if self.stage_id.stage_type == 'review':
+        if self.stage_id.stage_type == 'review' and self.reviewer_id.wip_limit:
             if self.reviewer_id.current_wip_items()[0] >= \
                     self.reviewer_id.wip_limit:
                 res = {'warning': {
@@ -409,17 +411,17 @@ class ProjectTaskExtension(models.Model):
         if stage.stage_type == 'queue' and stage.related_stage_id:
             stage = stage.related_stage_id
         if stage.stage_type == 'dev':
-            if self.user_id:
+            if self.user_id and self.user_id.wip_limit:
                 if self.user_id.current_wip_items()[0] > \
                         self.user_id.wip_limit:
                     return self.user_id.name + ' is overloaded'
         elif stage.stage_type == 'analysis':
-            if self.analyst_id:
+            if self.analyst_id and self.analyst_id.wip_limit:
                 if self.analyst_id.current_wip_items()[0] > \
                         self.analyst_id.wip_limit:
                     return self.analyst_id.name + ' is overloaded'
         elif stage.stage_type == 'review':
-            if self.reviewer_id:
+            if self.reviewer_id and self.reviewer_id.wip_limit:
                 if self.reviewer_id.current_wip_items()[0] > \
                         self.reviewer_id.wip_limit:
                     return self.reviewer_id.name + ' is overloaded'
