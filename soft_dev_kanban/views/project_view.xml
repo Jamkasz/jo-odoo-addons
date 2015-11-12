@@ -101,6 +101,7 @@
                 <xpath expr="//field[@name='sequence']" position="before">
                     <field name="stage_type"/>
                     <field name="related_stage_id" attrs="{'invisible':[['stage_type','!=','queue']]}" options="{'no_open': True}"/>
+                    <field name="wip_limit" attrs="{'invisible':[['stage_type','in',['backlog','queue','done']]]}"/>
                 </xpath>
             </field>
         </record>

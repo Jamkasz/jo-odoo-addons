@@ -96,8 +96,18 @@ class ProjectTaskTypeExtension(models.Model):
                     raise models.except_orm(
                         'Stage Type Error',
                         'Only queue stages can have related_stage_id')
-        if vals.get('stage_type') and vals.get('stage_type') != 'queue':
-            vals['related_stage_id'] = False
+        if vals.get('stage_type'):
+            if vals.get('stage_type') != 'queue':
+                vals['related_stage_id'] = False
+            if vals.get('stage_type') in ['backlog', 'queue', 'done']:
+                    vals['wip_limit'] = False
+        if vals.get('wip_limit'):
+            for stage in self:
+                if stage.stage_type in ['backlog', 'queue', 'done']:
+                    raise models.except_orm(
+                        'Stage WIP Limit Error',
+                        '{0} stages cannot have a WIP limit'.format(
+                            stage.stage_type))
         return super(ProjectTaskTypeExtension, self).write(vals)
 
     @api.onchange('related_stage_id')
