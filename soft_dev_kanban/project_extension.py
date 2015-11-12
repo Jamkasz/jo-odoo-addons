@@ -76,6 +76,48 @@ class ProjectTaskTypeExtension(models.Model):
     ]
 
     stage_type = fields.Selection(_types, 'Type', default='other')
+    related_stage_id = fields.Many2one(
+        'project.task.type', string='Queue To',
+        domain=[['stage_type', 'not in', ['backlog', 'queue']]])
+
+    @api.multi
+    def write(self, vals):
+        """
+        Extends Odoo `write` method to manage the ``related_stage_id``
+        changes.
+
+        Non `queue` stages are not allowed to have a related stage.
+        related_stage_id cannot be of `backlog` or `queue` type.
+        """
+        if vals.get('related_stage_id'):
+            if self.browse(vals.get('related_stage_id')).stage_type in \
+                    ['backlog', 'queue']:
+                raise models.except_orm(
+                    'Stage Type Error',
+                    'related_stage_id cannot be of backlog or queue type')
+            for stage in self:
+                if stage.stage_type != 'queue':
+                    raise models.except_orm(
+                        'Stage Type Error',
+                        'Only queue stages can have related_stage_id')
+        if vals.get('stage_type') and vals.get('stage_type') != 'queue':
+            vals['related_stage_id'] = False
+        return super(ProjectTaskTypeExtension, self).write(vals)
+
+    @api.onchange('related_stage_id')
+    def onchange_related_stage_id(self):
+        """
+        Shows a warning message if the analyst assigned is being
+        overloaded above the work in progress limit.
+        """
+        res = {}
+        if self.stage_type != 'queue':
+            res['warning'] = {
+                'title': 'Warning',
+                'message': 'Only queue stages can have a related stage'
+            }
+            self.related_stage_id = False
+        return res
 
     def _update_stages_on_install(self, cr, uid, ids=None, context=None):
         """
@@ -364,6 +406,8 @@ class ProjectTaskExtension(models.Model):
         """
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
+        if stage.stage_type == 'queue' and stage.related_stage_id:
+            stage = stage.related_stage_id
         if stage.stage_type == 'dev':
             if self.user_id:
                 if self.user_id.current_wip_items()[0] > \

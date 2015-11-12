@@ -15,6 +15,10 @@ class TestUsersWipManagement(common.SingleTransactionCase):
         cls.backlog = cls.stage_model.search([['name', '=', 'Backlog']])
         cls.queue = cls.stage_model.search(
             [['name', '=', 'Development Ready']])
+        cls.input = cls.stage_model.search(
+            [['name', '=', 'Input Queue']])
+        cls.testready = cls.stage_model.search(
+            [['name', '=', 'Test Ready']])
         cls.analysis = cls.stage_model.search([['name', '=', 'Analysis']])
         cls.dev = cls.stage_model.search([['name', '=', 'Development']])
         cls.review = cls.stage_model.search([['name', '=', 'Testing']])
@@ -49,7 +53,14 @@ class TestUsersWipManagement(common.SingleTransactionCase):
         self.task.stage_id = self.analysis.id
         self.assertEqual(self.user.current_wip_items()[0], 1)
 
-    def test_04_current_wip_items_counts_dev_items_if_user_assigned(self):
+    def test_04_current_wip_items_counts_analysis_queue_if_user_analyst(self):
+        self.assertEqual(self.user.current_wip_items()[0], 1)
+        self.task.stage_id = self.input.id
+        self.assertEqual(self.user.current_wip_items()[0], 1)
+        self.task2.stage_id = self.input.id
+        self.assertEqual(self.user.current_wip_items()[0], 1)
+
+    def test_05_current_wip_items_counts_dev_items_if_user_assigned(self):
         self.task2.user_id = self.user.id
         self.assertEqual(self.user.current_wip_items()[0], 1)
         self.task2.stage_id = self.dev.id
@@ -57,7 +68,13 @@ class TestUsersWipManagement(common.SingleTransactionCase):
         self.task.stage_id = self.dev.id
         self.assertEqual(self.user.current_wip_items()[0], 1)
 
-    def test_05_current_wip_items_counts_review_items_if_user_reviewer(self):
+    def test_06_current_wip_items_counts_dev_queue_if_user_assigned(self):
+        self.task2.stage_id = self.queue.id
+        self.assertEqual(self.user.current_wip_items()[0], 1)
+        self.task.stage_id = self.queue.id
+        self.assertEqual(self.user.current_wip_items()[0], 1)
+
+    def test_07_current_wip_items_counts_review_items_if_user_reviewer(self):
         self.task.reviewer_id = self.user.id
         self.assertEqual(self.user.current_wip_items()[0], 1)
         self.task2.stage_id = self.review.id
@@ -65,7 +82,8 @@ class TestUsersWipManagement(common.SingleTransactionCase):
         self.task.stage_id = self.review.id
         self.assertEqual(self.user.current_wip_items()[0], 1)
 
-    def test_06_current_wip_items_ignores_queue_stages(self):
-        self.task.stage_id = self.queue.id
-        self.task2.stage_id = self.queue.id
-        self.assertEqual(self.user.current_wip_items()[0], 0)
+    def test_08_current_wip_items_counts_review_queue_if_user_reviewer(self):
+        self.task.stage_id = self.testready.id
+        self.assertEqual(self.user.current_wip_items()[0], 1)
+        self.task2.stage_id = self.testready.id
+        self.assertEqual(self.user.current_wip_items()[0], 1)
