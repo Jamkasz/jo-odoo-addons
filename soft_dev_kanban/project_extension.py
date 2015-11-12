@@ -51,17 +51,12 @@ class ProjectTaskTypeExtension(models.Model):
 
     `backlog` type allows to have a buffer to store ideas to pull
     into the workflow whenever necessary.
-    `queue` type is used as buffers within the workflow. Time spent
-    here counts towards the lean time anyway, but it will be ignored
-    when computing employee workload.
+    `queue` type is used as buffers within the workflow.
     `analysis` type marks the WIP stages for analysts.
     `dev` type marks the WIP stages for developers.
     `review` type marks the WIP stages for reviewers (i.e. testing).
     `done` type marks the finishing points of the workflow, a task
-    ``date_end`` will be updated when reaching this stage.
-
-    `internal` and `external` sources allows us to measure extra
-    metrics like lead time within our organization only.
+    ``date_out`` will be updated when reaching this stage.
     """
     _name = 'project.task.type'
     _inherit = 'project.task.type'
