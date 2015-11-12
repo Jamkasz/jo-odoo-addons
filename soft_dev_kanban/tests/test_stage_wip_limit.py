@@ -18,6 +18,8 @@ class TestStageWipLimit(common.SingleTransactionCase):
             [['name', '=', 'Input Queue']])
         cls.testready = cls.stage_model.search(
             [['name', '=', 'Test Ready']])
+        cls.rel_ready = cls.stage_model.search(
+            [['name', '=', 'Release Ready']])
         cls.analysis = cls.stage_model.search([['name', '=', 'Analysis']])
         cls.dev = cls.stage_model.search([['name', '=', 'Development']])
         cls.review = cls.stage_model.search([['name', '=', 'Testing']])
@@ -58,3 +60,15 @@ class TestStageWipLimit(common.SingleTransactionCase):
         self.analysis.stage_type = 'done'
         self.assertFalse(self.analysis.wip_limit)
         self.analysis.stage_type = 'analysis'
+
+    def test_07_current_wip_items_count_tasks_related_to_stage(self):
+        self.assertEqual(self.other.current_wip_items()[0], 0)
+        self.task.stage_id = self.other.id
+        self.assertEqual(self.other.current_wip_items()[0], 1)
+
+    def test_08_current_wip_items_count_tasks_related_to_stage(self):
+        self.task.stage_id = self.backlog.id
+        self.assertEqual(self.other.current_wip_items()[0], 0)
+        self.task.stage_id = self.rel_ready.id
+        self.assertEqual(self.rel_ready.current_wip_items()[0], 1)
+        self.assertEqual(self.other.current_wip_items()[0], 1)
