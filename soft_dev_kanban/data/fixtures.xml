@@ -1,5 +1,54 @@
 <openerp>
     <data noupdate="1">
+
+        <!-- Stages -->
+        <record id="project_stage_backlog" model="project.task.type">
+            <field name="sequence">1</field>
+            <field name="name">Backlog</field>
+            <field name="legend_blocked">Not validated</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">backlog</field>
+        </record>
+
+        <record id="project_stage_input" model="project.task.type">
+            <field name="sequence">2</field>
+            <field name="name">Input Queue</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">queue</field>
+            <field name="related_stage_id" ref="project.project_tt_analysis"/>
+        </record>
+
+        <record id="project_stage_dev_queue" model="project.task.type">
+            <field name="sequence">12</field>
+            <field name="name">Development Ready</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">queue</field>
+            <field name="related_stage_id" ref="project.project_tt_development"/>
+        </record>
+
+        <record id="project_stage_test_queue" model="project.task.type">
+            <field name="sequence">14</field>
+            <field name="name">Test Ready</field>
+            <field name="case_default" eval="True"/>
+            <field name="stage_type">queue</field>
+            <field name="related_stage_id" ref="project.project_tt_testing"/>
+        </record>
+
+        <record id="project_stage_release" model="project.task.type">
+            <field name="sequence">21</field>
+            <field name="name">Release</field>
+            <field name="case_default" eval="False"/>
+            <field name="stage_type">other</field>
+        </record>
+
+        <record id="project_stage_release_ready" model="project.task.type">
+            <field name="sequence">20</field>
+            <field name="name">Release Ready</field>
+            <field name="case_default" eval="False"/>
+            <field name="stage_type">queue</field>
+            <field name="related_stage_id" ref="project_stage_release"/>
+        </record>
+
         <!-- Demo User -->
         <record id="sdk_partner_demo" model="res.partner">
             <field name="name">SDK Demo User</field>
