@@ -32,3 +32,14 @@ class KanbanUserTeam(models.Model):
         :rtype: int
         """
         return sum(self.user_ids.current_wip_items())
+
+    @api.one
+    def check_wip_limit(self):
+        """
+        Checks the WIP item limit for the team and returns a warning
+        message if it is overloaded.
+        """
+        if self.wip_limit:
+            if sum(self.current_wip_items()) > self.wip_limit:
+                return '{0} is overloaded'.format(self.name)
+        return False

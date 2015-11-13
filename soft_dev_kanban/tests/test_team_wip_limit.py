@@ -74,3 +74,15 @@ class TestTeamWipLimit(common.SingleTransactionCase):
         self.task.stage_id = self.input.id
         self.task2.stage_id = self.input.id
         self.assertEqual(self.team.current_wip_items()[0], 2)
+
+    def test_07_check_wip_limit_return_warning_if_overloaded(self):
+        self.team.wip_limit = 1
+        self.assertEqual(self.team.check_wip_limit()[0],
+                         'SDK Demo Team is overloaded')
+        self.assertEqual(self.task.check_team_limit(self.input.id)[0],
+                         'SDK Demo Team is overloaded')
+
+    def test_08_check_wip_limit_no_warning_if_limit_is_0(self):
+        self.team.wip_limit = 0
+        self.assertFalse(self.team.check_wip_limit()[0])
+        self.assertFalse(self.task.check_team_limit(self.input.id)[0])
