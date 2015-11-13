@@ -33,4 +33,44 @@ class TestTeamWipLimit(common.SingleTransactionCase):
             [['name', '=', 'Refactor Tests Code']])
         cls.task2 = cls.task_model.search([['name', '=', 'WIP Management']])
 
-    # def test_01_write_wip_limit_raises_if_backlog(self):
+    def test_01_current_wip_items_count_developer_items_on_dev_stage(self):
+        self.task.stage_id = self.dev.id
+        self.task2.stage_id = self.dev.id
+        self.assertEqual(self.team.current_wip_items()[0], 0)
+        self.task.user_id = self.user.id
+        self.assertEqual(self.team.current_wip_items()[0], 1)
+        self.task2.user_id = self.user2.id
+        self.assertEqual(self.team.current_wip_items()[0], 2)
+
+    def test_02_current_wip_items_count_developer_items_on_dev_queue(self):
+        self.task.stage_id = self.queue.id
+        self.task2.stage_id = self.queue.id
+        self.assertEqual(self.team.current_wip_items()[0], 2)
+
+    def test_03_current_wip_items_count_reviewer_items_on_review_stage(self):
+        self.task.stage_id = self.review.id
+        self.task2.stage_id = self.review.id
+        self.assertEqual(self.team.current_wip_items()[0], 0)
+        self.task.reviewer_id = self.user.id
+        self.assertEqual(self.team.current_wip_items()[0], 1)
+        self.task2.reviewer_id = self.user2.id
+        self.assertEqual(self.team.current_wip_items()[0], 2)
+
+    def test_04_current_wip_items_count_reviewer_items_on_review_queue(self):
+        self.task.stage_id = self.testready.id
+        self.task2.stage_id = self.testready.id
+        self.assertEqual(self.team.current_wip_items()[0], 2)
+
+    def test_05_current_wip_items_count_analyst_items_on_analysis_stage(self):
+        self.task.stage_id = self.analysis.id
+        self.task2.stage_id = self.analysis.id
+        self.assertEqual(self.team.current_wip_items()[0], 0)
+        self.task.analyst_id = self.user.id
+        self.assertEqual(self.team.current_wip_items()[0], 1)
+        self.task2.analyst_id = self.user2.id
+        self.assertEqual(self.team.current_wip_items()[0], 2)
+
+    def test_06_current_wip_items_count_analyst_items_on_analysis_queue(self):
+        self.task.stage_id = self.input.id
+        self.task2.stage_id = self.input.id
+        self.assertEqual(self.team.current_wip_items()[0], 2)

@@ -2,7 +2,7 @@
 `team.py` adds the concept of User Team for the Kanban management.
 """
 
-from openerp import models, fields
+from openerp import models, fields, api
 
 
 class KanbanUserTeam(models.Model):
@@ -21,3 +21,14 @@ class KanbanUserTeam(models.Model):
     throughput = fields.Float('Work Items per Day Average', default=0)
     wip_limit = fields.Integer('WIP Limit', default=0)
     date_last_wip_update = fields.Date('Last WIP update')
+
+    @api.one
+    def current_wip_items(self):
+        """
+        Computes the current number of work in progress items of the
+        team.
+
+        :returns: number of work items
+        :rtype: int
+        """
+        return sum(self.user_ids.current_wip_items())
