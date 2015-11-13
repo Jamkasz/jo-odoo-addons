@@ -2,10 +2,7 @@
 `team.py` adds the concept of User Team for the Kanban management.
 """
 
-from openerp.models import Environment
-from openerp import models, fields, api
-from datetime import datetime as dt
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as dtf
+from openerp import models, fields
 
 
 class KanbanUserTeam(models.Model):

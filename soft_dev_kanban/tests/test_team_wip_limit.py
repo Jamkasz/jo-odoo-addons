@@ -1,5 +1,4 @@
 from openerp.tests import common
-from openerp.models import except_orm
 
 
 class TestTeamWipLimit(common.SingleTransactionCase):
