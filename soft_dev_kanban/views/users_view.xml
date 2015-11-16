@@ -1,0 +1,20 @@
+<openerp>
+    <data>
+        <record id="res_users_view_form_ext" model="ir.ui.view">
+            <field name="name">res.users.form.ext</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//page[@string='Preferences']" position="after">
+                    <page string="Kanban Settings">
+                        <group>
+                            <field name="throughput" readonly="1"/>
+                            <field name="wip_limit"/>
+                            <field name="team_ids" widget="many2many_tags"/>
+                        </group>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</openerp>

@@ -1,5 +1,5 @@
 """
-`task_extension.py` extends the `project.task` Odoo model adding
+`project_extension.py` extends the `project` Odoo module adding
 extra functionality to provide a better kanban process experience.
 """
 from openerp.models import Environment
@@ -51,17 +51,12 @@ class ProjectTaskTypeExtension(models.Model):
 
     `backlog` type allows to have a buffer to store ideas to pull
     into the workflow whenever necessary.
-    `queue` type is used as buffers within the workflow. Time spent
-    here counts towards the lean time anyway, but it will be ignored
-    when computing employee workload.
+    `queue` type is used as buffers within the workflow.
     `analysis` type marks the WIP stages for analysts.
     `dev` type marks the WIP stages for developers.
     `review` type marks the WIP stages for reviewers (i.e. testing).
     `done` type marks the finishing points of the workflow, a task
-    ``date_end`` will be updated when reaching this stage.
-
-    `internal` and `external` sources allows us to measure extra
-    metrics like lead time within our organization only.
+    ``date_out`` will be updated when reaching this stage.
     """
     _name = 'project.task.type'
     _inherit = 'project.task.type'
@@ -76,6 +71,89 @@ class ProjectTaskTypeExtension(models.Model):
     ]
 
     stage_type = fields.Selection(_types, 'Type', default='other')
+    related_stage_id = fields.Many2one(
+        'project.task.type', string='Queue To',
+        domain=[['stage_type', 'not in', ['backlog', 'queue']]])
+    wip_limit = fields.Integer('WIP Limit')
+
+    @api.multi
+    def write(self, vals):
+        """
+        Extends Odoo `write` method to manage the ``related_stage_id``
+        changes.
+
+        Non `queue` stages are not allowed to have a related stage.
+        related_stage_id cannot be of `backlog` or `queue` type.
+        """
+        if vals.get('related_stage_id'):
+            if self.browse(vals.get('related_stage_id')).stage_type in \
+                    ['backlog', 'queue']:
+                raise models.except_orm(
+                    'Stage Type Error',
+                    'related_stage_id cannot be of backlog or queue type')
+            for stage in self:
+                if stage.stage_type != 'queue':
+                    raise models.except_orm(
+                        'Stage Type Error',
+                        'Only queue stages can have related_stage_id')
+        if vals.get('stage_type'):
+            if vals.get('stage_type') != 'queue':
+                vals['related_stage_id'] = False
+            if vals.get('stage_type') in ['backlog', 'queue', 'done']:
+                    vals['wip_limit'] = False
+        if vals.get('wip_limit'):
+            for stage in self:
+                if stage.stage_type in ['backlog', 'queue', 'done']:
+                    raise models.except_orm(
+                        'Stage WIP Limit Error',
+                        '{0} stages cannot have a WIP limit'.format(
+                            stage.stage_type))
+        return super(ProjectTaskTypeExtension, self).write(vals)
+
+    @api.one
+    def check_wip_limit(self):
+        """
+        Checks the WIP item limit for the stage and returns a warning
+        message if it is overloaded.
+        """
+        if self.wip_limit:
+            if self.current_wip_items()[0] > self.wip_limit:
+                return '{0} stage is overloaded'.format(self.name)
+        if self.related_stage_id:
+            return self.related_stage_id.check_wip_limit()[0]
+        return False
+
+    @api.one
+    def current_wip_items(self):
+        """
+        Computes the current number of work in progress items of the
+        stage.
+
+        :returns: number of work items
+        :rtype: int
+        """
+        task_model = self.env['project.task']
+        queues = self.search([['related_stage_id', '=', self.id]])
+        work_items = task_model.search([
+            '|',
+            ['stage_id', '=', self.id],
+            ['stage_id', 'in', [q.id for q in queues]]])
+        return len(work_items)
+
+    @api.onchange('related_stage_id')
+    def onchange_related_stage_id(self):
+        """
+        Shows a warning message if the analyst assigned is being
+        overloaded above the work in progress limit.
+        """
+        res = {}
+        if self.stage_type != 'queue':
+            res['warning'] = {
+                'title': 'Warning',
+                'message': 'Only queue stages can have a related stage'
+            }
+            self.related_stage_id = False
+        return res
 
     def _update_stages_on_install(self, cr, uid, ids=None, context=None):
         """
@@ -111,18 +189,6 @@ class ProjectTaskTypeExtension(models.Model):
             done.write({'stage_type': 'done'})
         if cancel:
             cancel.write({'stage_type': 'done'})
-        # Add new stages
-        new = stage_model.search([['name', 'in', [
-            'Backlog', 'Input Queue', 'Development Ready', 'Test Ready']]])
-        if not new:
-            stage_model.create({'name': 'Backlog', 'sequence': 1,
-                                'case_default': True, 'stage_type': 'backlog'})
-            stage_model.create({'name': 'Input Queue', 'sequence': 2,
-                                'case_default': True, 'stage_type': 'queue'})
-            stage_model.create({'name': 'Development Ready', 'sequence': 12,
-                                'case_default': True, 'stage_type': 'queue'})
-            stage_model.create({'name': 'Test Ready', 'sequence': 14,
-                                'case_default': True, 'stage_type': 'queue'})
 
 
 class ProjectTaskExtension(models.Model):
@@ -297,7 +363,8 @@ class ProjectTaskExtension(models.Model):
         overloaded above the work in progress limit.
         """
         res = {}
-        if self.stage_id.stage_type == 'analysis':
+        if self.stage_id.stage_type == 'analysis' and \
+                self.analyst_id.wip_limit:
             if self.analyst_id.current_wip_items(
             )[0] >= self.analyst_id.wip_limit:
                 res = {'warning': {
@@ -314,7 +381,7 @@ class ProjectTaskExtension(models.Model):
         overloaded above the work in progress limit.
         """
         res = {}
-        if self.stage_id.stage_type == 'dev':
+        if self.stage_id.stage_type == 'dev' and self.user_id.wip_limit:
             if self.user_id.current_wip_items()[0] >= self.user_id.wip_limit:
                 res = {'warning': {
                     'title': 'Warning',
@@ -330,7 +397,7 @@ class ProjectTaskExtension(models.Model):
         overloaded above the work in progress limit.
         """
         res = {}
-        if self.stage_id.stage_type == 'review':
+        if self.stage_id.stage_type == 'review' and self.reviewer_id.wip_limit:
             if self.reviewer_id.current_wip_items()[0] >= \
                     self.reviewer_id.wip_limit:
                 res = {'warning': {
@@ -354,16 +421,16 @@ class ProjectTaskExtension(models.Model):
             stage_model = self.env['project.task.type']
             for task in self:
                 if task.stage_id.stage_type == 'dev' and task.user_id:
-                    task.user_id.add_wip()
+                    task.user_id.add_finished_item()
                 elif task.stage_id.stage_type == 'review' and task.reviewer_id:
-                    task.reviewer_id.add_wip()
+                    task.reviewer_id.add_finished_item()
                 elif task.stage_id.stage_type == 'analysis' and \
                         task.analyst_id:
-                    task.analyst_id.add_wip()
+                    task.analyst_id.add_finished_item()
             stage = stage_model.browse(vals.get('stage_id'))
             if stage.stage_type != 'backlog' and not self.date_in:
                 vals['date_in'] = dt.now().strftime(dtf)
-            elif stage.stage_type == 'done' and not self.date_out:
+            if stage.stage_type == 'done' and not self.date_out:
                 vals['date_out'] = dt.now().strftime(dtf)
         return super(ProjectTaskExtension, self).write(vals)
 
@@ -373,24 +440,76 @@ class ProjectTaskExtension(models.Model):
         Checks the WIP item limit for the analyst, developer or reviewer
         of the task and returns a warning message if any of them
         is overloaded.
+
+        :param stage_id: ``project.task.type`` id
+        :type stage_id: int
         """
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
+        if stage.stage_type == 'queue' and stage.related_stage_id:
+            stage = stage.related_stage_id
         if stage.stage_type == 'dev':
-            if self.user_id:
+            if self.user_id and self.user_id.wip_limit:
                 if self.user_id.current_wip_items()[0] > \
                         self.user_id.wip_limit:
                     return self.user_id.name + ' is overloaded'
         elif stage.stage_type == 'analysis':
-            if self.analyst_id:
+            if self.analyst_id and self.analyst_id.wip_limit:
                 if self.analyst_id.current_wip_items()[0] > \
                         self.analyst_id.wip_limit:
                     return self.analyst_id.name + ' is overloaded'
         elif stage.stage_type == 'review':
-            if self.reviewer_id:
+            if self.reviewer_id and self.reviewer_id.wip_limit:
                 if self.reviewer_id.current_wip_items()[0] > \
                         self.reviewer_id.wip_limit:
                     return self.reviewer_id.name + ' is overloaded'
+        return False
+
+    @api.model
+    def check_stage_limit(self, stage_id):
+        """
+        Checks the WIP item limit for the stage and returns a
+        warning message if it is overloaded.
+
+        :param stage_id: ``project.task.type`` id
+        :type stage_id: int
+        """
+        stage_model = self.env['project.task.type']
+        stage = stage_model.browse(stage_id)
+        return stage.check_wip_limit()[0]
+
+    @api.one
+    def check_team_limit(self, stage_id):
+        """
+        Checks the WIP item limit for the analyst, developer or reviewer
+        team of the task and returns a warning message if any of them
+        is overloaded.
+
+        :param team_id: :mod:`team<team.KanbanUserTeam>` id
+        :type team_id: int
+        """
+        stage_model = self.env['project.task.type']
+        stage = stage_model.browse(stage_id)
+        if stage.stage_type == 'queue' and stage.related_stage_id:
+            stage = stage.related_stage_id
+        if stage.stage_type == 'dev':
+            if self.user_id and self.user_id.team_ids:
+                res = self.user_id.team_ids.check_wip_limit()
+                for r in res:
+                    if r:
+                        return r
+        elif stage.stage_type == 'analysis':
+            if self.analyst_id and self.analyst_id.team_ids:
+                res = self.analyst_id.team_ids.check_wip_limit()
+                for r in res:
+                    if r:
+                        return r
+        elif stage.stage_type == 'review':
+            if self.reviewer_id and self.reviewer_id.team_ids:
+                res = self.reviewer_id.team_ids.check_wip_limit()
+                for r in res:
+                    if r:
+                        return r
         return False
 
     @api.one
@@ -417,7 +536,7 @@ class ProjectTaskExtension(models.Model):
         history_model = self.env['project.task.history']
         history_records = history_model.search([
             ['task_id', '=', self.id],
-            ['type_id.stage_type', '=', 'done']], order="date desc")
+            ['type_id.stage_type', '=', 'done']], order="date asc")
         if history_records:
             self.date_out = history_records[0].date
         return True
@@ -446,12 +565,14 @@ class ProjectExtension(models.Model):
         :returns: time in hours
         :rtype: float
         """
+        task_model = self.env['project.task']
+        task_ids = task_model.search([
+            ['project_id', '=', self.id], ['date_out', '!=', False]])
         tasks = 0
         total_time = 0
-        for task in self.task_ids:
-            if task.date_out:
-                tasks += 1
-                total_time += task.total_time
+        for task in task_ids:
+            tasks += 1
+            total_time += task.total_time
         if tasks:
             self.average_lead_time = total_time / tasks
         else:
@@ -463,6 +584,9 @@ class ProjectExtension(models.Model):
         Updates ``date_in`` and ``date_out`` of every task related to
         the project.
         """
-        self.task_ids.update_date_in()
-        self.task_ids.update_date_out()
+        task_model = self.env['project.task']
+        task_ids = task_model.search([
+            ['project_id', '=', self.id]])
+        task_ids.update_date_in()
+        task_ids.update_date_out()
         return True

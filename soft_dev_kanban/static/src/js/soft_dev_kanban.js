@@ -28,6 +28,16 @@ openerp.soft_dev_kanban = function (instance) {
                                 self.do_warn('Warning', r);
                             }
                         });
+                        self.view.dataset.call('check_stage_limit', [change['stage_id']]).done(function (r) {
+                            if (r != false){
+                                self.do_warn('Warning', r);
+                            }
+                        });
+                        self.view.dataset.call('check_team_limit', [self.view.datarecord.id, change['stage_id']]).done(function (r) {
+                            if (r[0] != false){
+                                self.do_warn('Warning', r);
+                            }
+                        });
                     }
                 });
             }
@@ -41,6 +51,16 @@ openerp.soft_dev_kanban = function (instance) {
             if (old_group != new_group){
                 if (this.dataset.model === 'project.task'){
                     this.dataset.call('check_wip_limit', [record.id, new_group.value]).done(function (r){
+                       if (r[0] != false){
+                           self.do_warn('Warning', r);
+                       }
+                    });
+                    this.dataset.call('check_stage_limit', [new_group.value]).done(function (r){
+                       if (r != false){
+                           self.do_warn('Warning', r);
+                       }
+                    });
+                    this.dataset.call('check_team_limit', [record.id, new_group.value]).done(function (r){
                        if (r[0] != false){
                            self.do_warn('Warning', r);
                        }

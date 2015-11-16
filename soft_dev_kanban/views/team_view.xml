@@ -1,0 +1,67 @@
+<openerp>
+    <data>
+        <record id="view_team_form" model="ir.ui.view">
+            <field name="name">view.user.team.form</field>
+            <field name="model">sdk.user.team</field>
+            <field name="arch" type="xml">
+                <form string="Team">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1><field name="name"/></h1>
+                        </div>
+                        <group>
+                            <field name="throughput" readonly="1"/>
+                            <field name="wip_limit"/>
+                        </group>
+                        <notebook colspan="4">
+                            <page string="Team Members">
+                                <group col="4">
+                                    <field name="user_ids" nolabel="1">
+                                        <tree>
+                                            <field name="name"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_team_tree" model="ir.ui.view">
+            <field name="name">view.user.team.tree</field>
+            <field name="model">sdk.user.team</field>
+            <field name="arch" type="xml">
+                <tree string="Teams">
+                    <field name="name"/>
+                    <field name="throughput"/>
+                    <field name="wip_limit"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_team_search" model="ir.ui.view">
+            <field name="name">view.user.team.search</field>
+            <field name="model">sdk.user.team</field>
+            <field name="arch" type="xml">
+                <search string="Teams">
+                    <field name="name" string="Team"/>
+                    <field name="user_ids" string="Team Member"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_user_teams" model="ir.actions.act_window">
+            <field name="name">Kanban Teams</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sdk.user.team</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="view_team_tree"/>
+            <field name="search_view_id" ref="view_team_search"/>
+        </record>
+
+        <menuitem action="action_user_teams" id="menu_action_view_teams" parent="base.menu_definitions" sequence="50"/>
+    </data>
+</openerp>
