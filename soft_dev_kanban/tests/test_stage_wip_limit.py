@@ -66,7 +66,7 @@ class TestStageWipLimit(common.SingleTransactionCase):
         self.task.stage_id = self.other.id
         self.assertEqual(self.other.current_wip_items()[0], 1)
 
-    def test_08_current_wip_items_count_tasks_related_to_stage(self):
+    def test_08_current_wip_items_count_tasks_related_to_stage_queues(self):
         self.task.stage_id = self.backlog.id
         self.assertEqual(self.other.current_wip_items()[0], 0)
         self.task.stage_id = self.rel_ready.id

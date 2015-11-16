@@ -7,3 +7,4 @@ import test_users_wip_management
 import test_task_wip_management
 import test_stage_related_stage
 import test_stage_wip_limit
+import test_team_wip_limit

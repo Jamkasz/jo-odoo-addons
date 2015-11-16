@@ -19,6 +19,8 @@ class ResUsersExtension(models.Model):
     throughput = fields.Float('Work Items per Day Average', default=0)
     wip_limit = fields.Integer('WIP Limit', default=0)
     date_last_wip_update = fields.Date('Last WIP update')
+    team_ids = fields.Many2many('sdk.user.team', 'team_users_rel', 'user_id',
+                                'team_id', 'Kanban Teams')
 
     @api.one
     def add_finished_item(self):

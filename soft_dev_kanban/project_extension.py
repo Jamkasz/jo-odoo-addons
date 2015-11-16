@@ -440,6 +440,9 @@ class ProjectTaskExtension(models.Model):
         Checks the WIP item limit for the analyst, developer or reviewer
         of the task and returns a warning message if any of them
         is overloaded.
+
+        :param stage_id: ``project.task.type`` id
+        :type stage_id: int
         """
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
@@ -467,10 +470,47 @@ class ProjectTaskExtension(models.Model):
         """
         Checks the WIP item limit for the stage and returns a
         warning message if it is overloaded.
+
+        :param stage_id: ``project.task.type`` id
+        :type stage_id: int
         """
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
         return stage.check_wip_limit()[0]
+
+    @api.one
+    def check_team_limit(self, stage_id):
+        """
+        Checks the WIP item limit for the analyst, developer or reviewer
+        team of the task and returns a warning message if any of them
+        is overloaded.
+
+        :param team_id: :mod:`team<team.KanbanUserTeam>` id
+        :type team_id: int
+        """
+        stage_model = self.env['project.task.type']
+        stage = stage_model.browse(stage_id)
+        if stage.stage_type == 'queue' and stage.related_stage_id:
+            stage = stage.related_stage_id
+        if stage.stage_type == 'dev':
+            if self.user_id and self.user_id.team_ids:
+                res = self.user_id.team_ids.check_wip_limit()
+                for r in res:
+                    if r:
+                        return r
+        elif stage.stage_type == 'analysis':
+            if self.analyst_id and self.analyst_id.team_ids:
+                res = self.analyst_id.team_ids.check_wip_limit()
+                for r in res:
+                    if r:
+                        return r
+        elif stage.stage_type == 'review':
+            if self.reviewer_id and self.reviewer_id.team_ids:
+                res = self.reviewer_id.team_ids.check_wip_limit()
+                for r in res:
+                    if r:
+                        return r
+        return False
 
     @api.one
     def update_date_in(self):

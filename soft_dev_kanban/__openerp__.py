@@ -12,6 +12,8 @@
     'website': '',
     'depends': ['project', 'hr'],
     'data': ['views/project_view.xml',
+             'views/users_view.xml',
+             'views/team_view.xml',
              'data/update_data.xml'],
     'demo': ['data/fixtures.xml'],
     'css': [],
