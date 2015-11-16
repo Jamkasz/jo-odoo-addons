@@ -49,10 +49,15 @@
             <field name="related_stage_id" ref="project_stage_release"/>
         </record>
 
-        <!-- Kanban User Team -->
+        <!-- Kanban User Teams -->
 
         <record id="sdk_user_team" model="sdk.user.team">
             <field name="name">SDK Demo Team</field>
+            <field name="wip_limit">0</field>
+        </record>
+
+        <record id="sdk_user_team_2" model="sdk.user.team">
+            <field name="name">SDK Demo Team 2</field>
             <field name="wip_limit">0</field>
         </record>
 

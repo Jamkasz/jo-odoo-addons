@@ -29,9 +29,16 @@ class TestTeamWipLimit(common.SingleTransactionCase):
         cls.user = cls.user_model.search([['name', '=', 'SDK Demo User']])
         cls.user2 = cls.user_model.search([['name', '=', 'SDK Demo User 2']])
         cls.team = cls.team_model.search([['name', '=', 'SDK Demo Team']])
+        cls.team2 = cls.team_model.search([['name', '=', 'SDK Demo Team 2']])
         cls.task = cls.task_model.search(
             [['name', '=', 'Refactor Tests Code']])
         cls.task2 = cls.task_model.search([['name', '=', 'WIP Management']])
+
+    def test_00_compute_throughput_return_average_user_throughput(self):
+        self.team2._compute_throughput()
+        self.assertEqual(self.team2.throughput, 0)
+        self.team._compute_throughput()
+        self.assertEqual(self.team.throughput, 0)
 
     def test_01_current_wip_items_count_developer_items_on_dev_stage(self):
         self.task.stage_id = self.dev.id
@@ -87,7 +94,7 @@ class TestTeamWipLimit(common.SingleTransactionCase):
         self.task2.stage_id = self.queue.id
         self.assertEqual(self.team.check_wip_limit()[0],
                          'SDK Demo Team is overloaded')
-        self.assertEqual(self.task.check_team_limit(self.input.id)[0],
+        self.assertEqual(self.task.check_team_limit(self.queue.id)[0],
                          'SDK Demo Team is overloaded')
 
     def test_09_check_wip_limit_review_return_warning_if_overloaded(self):
@@ -95,7 +102,7 @@ class TestTeamWipLimit(common.SingleTransactionCase):
         self.task2.stage_id = self.testready.id
         self.assertEqual(self.team.check_wip_limit()[0],
                          'SDK Demo Team is overloaded')
-        self.assertEqual(self.task.check_team_limit(self.input.id)[0],
+        self.assertEqual(self.task.check_team_limit(self.testready.id)[0],
                          'SDK Demo Team is overloaded')
 
     def test_10_check_wip_limit_no_warning_if_limit_is_0(self):

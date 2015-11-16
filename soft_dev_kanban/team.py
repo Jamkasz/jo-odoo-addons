@@ -16,11 +16,22 @@ class KanbanUserTeam(models.Model):
     name = fields.Char('Name')
     user_ids = fields.Many2many('res.users', 'team_users_rel', 'team_id',
                                 'user_id', 'Team Members')
-    wi_finished = fields.Integer('Work Items Finished Today', default=0)
-    total_days = fields.Integer('Total Days Processed', default=0)
-    throughput = fields.Float('Work Items per Day Average', default=0)
+    throughput = fields.Float(
+        string='Throughput', compute='_compute_throughput',
+        store=False, readonly=True)
     wip_limit = fields.Integer('WIP Limit', default=0)
-    date_last_wip_update = fields.Date('Last WIP update')
+
+    @api.one
+    def _compute_throughput(self):
+        """
+        Computes the average throughput of the team.
+
+        :returns: work items per day on average
+        :rtype: float
+        """
+        if not self.user_ids:
+            return 0
+        return sum([u.throughput for u in self.user_ids])/len(self.user_ids)
 
     @api.one
     def current_wip_items(self):
