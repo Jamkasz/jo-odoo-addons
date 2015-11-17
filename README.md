@@ -13,7 +13,7 @@ Features:
 - [X] Employee Average Throughput
 - [X] Employee Load Management (individual WIP limit)
 - [X] Stage WIP limit
-- [ ] Team WIP limit
+- [X] Team WIP limit
 - [ ] Task Blocked Reason
 
 ## To use
