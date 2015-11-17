@@ -18,5 +18,13 @@
                 </form>
             </field>
         </record>
+
+        <record id="action_log_message" model="ir.actions.act_window">
+            <field name="name">Log Message</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">log.message.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="view_log_message_form"/>
+        </record>
     </data>
 </openerp>

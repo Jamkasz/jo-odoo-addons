@@ -476,7 +476,7 @@ class ProjectTaskExtension(models.Model):
         """
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
-        return stage.check_wip_limit()[0]
+        return stage.check_wip_limit()[0] if stage else False
 
     @api.one
     def check_team_limit(self, stage_id):
@@ -540,6 +540,26 @@ class ProjectTaskExtension(models.Model):
         if history_records:
             self.date_out = history_records[0].date
         return True
+
+    @api.one
+    def task_blocked(self):
+        """
+
+        :returns: action open wizard
+        :rtype: dict
+        """
+        self.write({'kanban_state': 'blocked'})
+        return {
+            'name': 'Log Blocked Reason',
+            'type': 'ir.actions.act_window',
+            'res_model': 'log.message.wizard',
+            'view_mode': 'form',
+            'view_type': 'form',
+            'target': 'new',
+            'context': {'default_res_model': 'project.task',
+                        'default_res_id': self.id,
+                        'default_subject': 'Task Blocked'}
+        }
 
 
 class ProjectExtension(models.Model):
