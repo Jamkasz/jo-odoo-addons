@@ -14,14 +14,16 @@ class LogMessageWizard(models.TransientModel):
     message = fields.Html('Message')
 
     @api.one
-    def log_message(self):
-        message_model = self.env['mail.message']
-        message_model.create({
-            'type': 'comment',
-            'author_id': self.env.user.partner_id.id,
-            'model': self.res_model,
-            'res_id': self.res_id,
-            'subject': self.subject,
-            'body': self.message
-        })
-        return {'type': 'ir.actions.act_window_close'}
+    def write(self, vals):
+        res = super(LogMessageWizard, self).write(vals)
+        if vals.get('message'):
+            message_model = self.env['mail.message']
+            message_model.create({
+                'type': 'comment',
+                'author_id': self.env.user.partner_id.id,
+                'model': self.res_model,
+                'res_id': self.res_id,
+                'subject': self.subject,
+                'body': self.message
+            })
+        return res

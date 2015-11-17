@@ -14,6 +14,7 @@
     'data': ['views/project_view.xml',
              'views/users_view.xml',
              'views/team_view.xml',
+             'views/log_message_wizard_view.xml',
              'data/update_data.xml'],
     'demo': ['data/fixtures.xml'],
     'css': [],

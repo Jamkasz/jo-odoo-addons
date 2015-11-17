@@ -55,16 +55,68 @@ openerp.soft_dev_kanban = function (instance) {
                     var log_model = new openerp.web.Model('log.message.wizard');
                     log_model.call('create', [{'res_model': 'project.task', 'res_id': self.record_id, 'subject': 'Log Task Blocked'}, self.parent.view.dataset.get_context()]).done(
                         function (wizard_id){
-                            var action_data = {};
-                            action_data.name = 'Log Message';
-                            action_data.type = 'ir.actions.act_window';
-                            var ds = new openerp.web.DataSetSearch(self.parent.view, 'log.message.wizard', self.parent.view.dataset.get_context(), [['id', '=', wizard_id]]);
-                            self.parent.view.do_execute_action(action_data, ds, wizard_id);
+                            var pop = new openerp.web.form.FormOpenPopup(self.parent.view);
+                            var view_model = new openerp.web.Model('ir.ui.view');
+                            view_model.call('search', [[['name', '=', 'log.message.wizard.form.view']], {}]).done(function(view_ids){
+                                pop.show_element(
+                                    'log.message.wizard',
+                                    wizard_id,
+                                    {},
+                                    {
+                                        title: 'Log Message',
+                                        view_id: view_ids[0]
+                                    }
+                                );
+                            });
                         }
                     );
-                    return self.parent.view.dataset._model.call('task_blocked', [[self.record_id], self.parent.view.dataset.get_context()]).done(self.reload_record.bind(self.parent));
                 }
                 return self.parent.view.dataset._model.call('write', [[self.record_id], value, self.parent.view.dataset.get_context()]).done(self.reload_record.bind(self.parent));
+            }
+        }
+    });
+
+    instance.web.form.KanbanSelection.include({
+        set_kanban_selection: function(ev) {
+            var self = this;
+            var li = $(ev.target).closest('li');
+            if (li.length) {
+                var value = String(li.data('value'));
+
+                if (self.view.dataset._model.name == 'project.task' && value == 'blocked'){
+                    var log_model = new openerp.web.Model('log.message.wizard');
+                    log_model.call('create', [{'res_model': 'project.task', 'res_id': self.view.datarecord.id, 'subject': 'Log Task Blocked'}, self.view.dataset.get_context()]).done(
+                        function (wizard_id){
+                            var pop = new openerp.web.form.FormOpenPopup(self.view);
+                            var view_model = new openerp.web.Model('ir.ui.view');
+                            view_model.call('search', [[['name', '=', 'log.message.wizard.form.view']], {}]).done(function(view_ids){
+                                pop.show_element(
+                                    'log.message.wizard',
+                                    wizard_id,
+                                    {},
+                                    {
+                                        title: 'Log Message',
+                                        view_id: view_ids[0]
+                                    }
+                                );
+                            });
+                        }
+                    );
+                }
+
+                if (this.view.get('actual_mode') == 'view') {
+                    var write_values = {}
+                    write_values[self.name] = value;
+                    return this.view.dataset._model.call(
+                        'write', [
+                            [this.view.datarecord.id],
+                            write_values,
+                            self.view.dataset.get_context()
+                        ]).done(self.reload_record.bind(self));
+                }
+                else {
+                    return this.set_value(value);
+                }
             }
         }
     });

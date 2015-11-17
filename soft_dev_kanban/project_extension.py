@@ -541,26 +541,6 @@ class ProjectTaskExtension(models.Model):
             self.date_out = history_records[0].date
         return True
 
-    @api.one
-    def task_blocked(self):
-        """
-
-        :returns: action open wizard
-        :rtype: dict
-        """
-        self.write({'kanban_state': 'blocked'})
-        return {
-            'name': 'Log Blocked Reason',
-            'type': 'ir.actions.act_window',
-            'res_model': 'log.message.wizard',
-            'view_mode': 'form',
-            'view_type': 'form',
-            'target': 'new',
-            'context': {'default_res_model': 'project.task',
-                        'default_res_id': self.id,
-                        'default_subject': 'Task Blocked'}
-        }
-
 
 class ProjectExtension(models.Model):
     """

@@ -1,5 +1,4 @@
 # pylint: disable=relative-import
-# import test_project_extension
 import test_task_lead_time
 import test_task_stage_time
 import test_project_lead_time
@@ -8,3 +7,4 @@ import test_task_wip_management
 import test_stage_related_stage
 import test_stage_wip_limit
 import test_team_wip_limit
+import test_log_message_wizard
