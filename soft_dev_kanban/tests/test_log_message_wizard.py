@@ -44,7 +44,7 @@ class TestLogMessageWizard(common.SingleTransactionCase):
         messages = self.message_model.search([
             ['type', '=', 'comment'], ['model', '=', 'project.task'],
             ['res_id', '=', self.task.id], ['subject', '=', 'Test'],
-            ['message', '=', 'test message']])
+            ['body', '=', 'test message']])
         self.assertTrue(messages)
 
     def test_02_write_log_not_message_field_does_not_log_message_on_task(self):
