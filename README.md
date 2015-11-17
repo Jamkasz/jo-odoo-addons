@@ -7,7 +7,7 @@ Extensions for Odoo not available in the default addons.
 
 Extension of the Project Kanban features to match better the Software Development Kanban working practices
 
-Features:
+<b>Features:</b>
 - [X] Task Lead Times
 - [X] Project Average Lead Time
 - [X] Employee Average Throughput
@@ -15,6 +15,11 @@ Features:
 - [X] Stage WIP limit
 - [X] Team WIP limit
 - [ ] Task Blocked Reason
+- [ ] Class of Service: Urgent
+- [ ] Class of Service: Fixed Delivery Date
+- [ ] Class of Service: Regular
+- [ ] Class of Service: Intangible
+- [ ] Class of Service: Defect
 
 ## To use
 Just add the addon you want into your Odoo addons path and install it
