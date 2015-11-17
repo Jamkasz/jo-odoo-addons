@@ -14,7 +14,7 @@ Extension of the Project Kanban features to match better the Software Developmen
 - [X] Employee Load Management (individual WIP limit)
 - [X] Stage WIP limit
 - [X] Team WIP limit
-- [ ] Task Blocked Reason
+- [X] Task Blocked Reason
 - [ ] Class of Service: Urgent
 - [ ] Class of Service: Fixed Delivery Date
 - [ ] Class of Service: Regular
