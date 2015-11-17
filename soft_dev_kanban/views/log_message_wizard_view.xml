@@ -1,0 +1,26 @@
+<openerp>
+    <data>
+        <record model="ir.ui.view" id="view_log_message_form">
+            <field name="name">log.message.wizard.form.view</field>
+            <field name="model">log.message.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Log Message Wizard Form" version="7.0">
+                    <group>
+                        <field name="res_model" invisible="1"/>
+                        <field name="res_id" invisible="1"/>
+                        <field name="subject" readonly="1"/>
+                        <field name="message"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_log_message" model="ir.actions.act_window">
+            <field name="name">Log Message</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">log.message.wizard</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="view_log_message_form"/>
+        </record>
+    </data>
+</openerp>

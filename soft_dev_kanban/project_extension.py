@@ -476,7 +476,7 @@ class ProjectTaskExtension(models.Model):
         """
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
-        return stage.check_wip_limit()[0]
+        return stage.check_wip_limit()[0] if stage else False
 
     @api.one
     def check_team_limit(self, stage_id):
