@@ -1,0 +1,69 @@
+<openerp>
+    <data>
+        <record id="view_cos_form" model="ir.ui.view">
+            <field name="name">view.class_of_service.form</field>
+            <field name="model">sdk.class_of_service</field>
+            <field name="arch" type="xml">
+                <form string="Class of Service">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only"/>
+                            <h1><field name="name"/></h1>
+                        </div>
+                        <group>
+                            <field name="colour"/>
+                            <field name="priority"/>
+                            <field name="limit"/>
+                            <field name="ignore_limit"/>
+                            <field name="deadline"/>
+                        </group>
+                        <notebook colspan="4">
+                            <page string="Tags">
+                                <group col="4">
+                                    <field name="tag_ids" nolabel="1" readonly="1">
+                                        <tree>
+                                            <field name="name"/>
+                                        </tree>
+                                    </field>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_cos_tree" model="ir.ui.view">
+            <field name="name">view.class_of_service.tree</field>
+            <field name="model">sdk.class_of_service</field>
+            <field name="arch" type="xml">
+                <tree string="Classes of Service">
+                    <field name="name"/>
+                    <field name="colour"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_cos_search" model="ir.ui.view">
+            <field name="name">view.class_of_service.search</field>
+            <field name="model">sdk.class_of_service</field>
+            <field name="arch" type="xml">
+                <search string="Classes of Service">
+                    <field name="name" string="Class of Service"/>
+                    <field name="tag_ids" string="Tag"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_classes_of_service" model="ir.actions.act_window">
+            <field name="name">Classes of Service</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">sdk.class_of_service</field>
+            <field name="view_type">form</field>
+            <field name="view_id" ref="view_cos_tree"/>
+            <field name="search_view_id" ref="view_cos_search"/>
+        </record>
+
+        <menuitem action="action_classes_of_service" id="menu_action_view_cos" parent="base.menu_definitions" sequence="45"/>
+    </data>
+</openerp>

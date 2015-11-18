@@ -590,3 +590,13 @@ class ProjectExtension(models.Model):
         task_ids.update_date_in()
         task_ids.update_date_out()
         return True
+
+
+class ProjectCategoryExtension(models.Model):
+    """
+    Extends `project.category` Odoo model to add kanban class of service
+    """
+    _name = 'project.category'
+    _inherit = 'project.category'
+
+    cos_id = fields.Many2one('sdk.class_of_service', 'Class of Service')

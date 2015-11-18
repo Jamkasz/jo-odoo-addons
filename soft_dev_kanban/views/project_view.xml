@@ -120,5 +120,16 @@
             </field>
         </record>
 
+        <record id="project_category_view_form_ext" model="ir.ui.view">
+            <field name="name">project.category.form.ext</field>
+            <field name="model">project.category</field>
+            <field name="inherit_id" ref="project.project_category_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='name']" position="after">
+                    <field name="cos_id"/>
+                </xpath>
+            </field>
+        </record>
+
     </data>
 </openerp>

@@ -1,5 +1,7 @@
 """
-`team.py` adds the concept of User Team for the Kanban management.
+`soft_dev_kanban.py` adds extra models not present in default Odoo
+necessary for the extra features implemented in this Kanban management
+module.
 """
 
 from openerp import models, fields, api
@@ -54,3 +56,25 @@ class KanbanUserTeam(models.Model):
             if sum(self.current_wip_items()) > self.wip_limit:
                 return '{0} is overloaded'.format(self.name)
         return False
+
+
+class ClassOfService(models.Model):
+    """
+    Represents a Kanban work item class of service.
+    """
+    _name = 'sdk.class_of_service'
+
+    _colour_selection = [[0, 'White'], [1, 'Grey'], [2, 'Red'], [3, 'Yellow'],
+                         [4, 'Green'], [5, 'Teal'], [6, 'Blue'], [7, 'Indigo'],
+                         [8, 'Purple'], [9, 'Pink']]
+    _deadline_selection = [['required', 'Required'],
+                           ['nodate', 'Must be Empty'],
+                           ['noreq', 'Not Required']]
+
+    name = fields.Char('Name')
+    limit = fields.Integer('Active Limited Amount', default=0)
+    colour = fields.Selection(_colour_selection, 'Kanban Colour')
+    priority = fields.Integer('Colour Priority', default=0)
+    ignore_limit = fields.Boolean('Ignore WIP limits', default=False)
+    deadline = fields.Selection(_deadline_selection, 'Task Deadline Date')
+    tag_ids = fields.One2many('project.category', 'cos_id', 'Tags')
