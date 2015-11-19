@@ -64,7 +64,7 @@ class ClassOfService(models.Model):
     """
     _name = 'sdk.class_of_service'
 
-    _colour_selection = [[0, 'White'], [1, 'Grey'], [2, 'Red'], [3, 'Yellow'],
+    _colour_selection = [[0, 'None'], [1, 'Grey'], [2, 'Red'], [3, 'Yellow'],
                          [4, 'Green'], [5, 'Teal'], [6, 'Blue'], [7, 'Indigo'],
                          [8, 'Purple'], [9, 'Pink']]
     _deadline_selection = [['required', 'Required'],
@@ -79,3 +79,25 @@ class ClassOfService(models.Model):
     deadline = fields.Selection(_deadline_selection, 'Task Deadline Date',
                                 default='noreq')
     tag_ids = fields.One2many('project.category', 'cos_id', 'Tags', readonly=1)
+
+    @api.multi
+    def write(self, vals):
+        """
+        Extends Odoo `write` method to do class of service checks.
+
+        :param vals: values dictionary
+        :type vals: dict
+        :returns: True
+        :rtype: bool
+        """
+        res = super(ClassOfService, self).write(vals)
+        if vals.get('colour') or vals.get('priority'):
+            tag_model = self.env['project.category']
+            tags = tag_model.search([['cos_id', 'in', [c.id for c in self]]])
+            task_model = self.env['project.task']
+            tasks = task_model.search(
+                [['categ_ids', 'in', [t.id for t in tags]]])
+            color = tags.get_cos_colour()
+            if color:
+                tasks.write({'color': color})
+        return res

@@ -452,6 +452,9 @@ class ProjectTaskExtension(models.Model):
                     'Class of Service Error!',
                     'Cannot create a new task with that class of service, the '
                     'maximum allowed amount has already been reached.')
+            color = tags.get_cos_colour()
+            if color:
+                res.color = color
         return res
 
     @api.multi
@@ -495,6 +498,9 @@ class ProjectTaskExtension(models.Model):
                     'Class of Service Error!',
                     'Cannot link another task with that class of service, the '
                     'maximum allowed amount has already been reached.')
+            color = tags.get_cos_colour()
+            if color:
+                self.color = color
         return res
 
     @api.one
@@ -706,6 +712,24 @@ class ProjectCategoryExtension(models.Model):
         return False
 
     @api.multi
+    def get_cos_colour(self):
+        """
+        Finds the highest priority color among the classes of service
+        related to the tags.
+
+        :returns: color index
+        :rtype: int
+        """
+        colour = 0
+        priority = 0
+        for cat in self:
+            if cat.cos_id and cat.cos_id.colour:
+                if cat.cos_id.priority < priority or not priority:
+                    colour = cat.cos_id.colour
+                    priority = cat.cos_id.priority
+        return colour
+
+    @api.multi
     def write(self, vals):
         """
         Extends Odoo `write` method to do class of service checks.
@@ -722,4 +746,10 @@ class ProjectCategoryExtension(models.Model):
                     'Class of Service Error!',
                     'Cannot link another tag with that class of service, as '
                     'it would break the maximum task amount limit.')
+            task_model = self.env['project.task']
+            tasks = task_model.search(
+                [['categ_ids', 'in', [c.id for c in self]]])
+            color = self.get_cos_colour()
+            if color:
+                tasks.write({'color': color})
         return res
