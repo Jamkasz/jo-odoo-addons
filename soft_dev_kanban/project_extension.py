@@ -372,8 +372,8 @@ class ProjectTaskExtension(models.Model):
                         'title': 'Warning',
                         'message': message
                     }}
-            for team in self.analyst_id.team_ids:
-                message = team.check_wip_limit()[0]
+            if self.analyst_id.team_ids:
+                message = self.check_team_limit(self.stage_id.id)[0]
                 if message:
                     return {'warning': {
                         'title': 'Warning',
@@ -397,8 +397,8 @@ class ProjectTaskExtension(models.Model):
                         'title': 'Warning',
                         'message': message
                     }}
-            for team in self.user_id.team_ids:
-                message = team.check_wip_limit()[0]
+            if self.user_id.team_ids:
+                message = self.check_team_limit(self.stage_id.id)[0]
                 if message:
                     return {'warning': {
                         'title': 'Warning',
@@ -422,8 +422,8 @@ class ProjectTaskExtension(models.Model):
                         'title': 'Warning',
                         'message': message
                     }}
-            for team in self.reviewer_id.team_ids:
-                message = team.check_wip_limit()[0]
+            if self.reviewer_id.team_ids:
+                message = self.check_team_limit(self.stage_id.id)[0]
                 if message:
                     return {'warning': {
                         'title': 'Warning',
@@ -459,6 +459,20 @@ class ProjectTaskExtension(models.Model):
         return super(ProjectTaskExtension, self).write(vals)
 
     @api.one
+    def ignore_wip_limit(self):
+        """
+        Checks if the task is related to any tag linked with a class
+        of service that ignores WIP limits.
+
+        :returns: True or False
+        :rtype: bool
+        """
+        for tag in self.categ_ids:
+            if tag.cos_id and tag.cos_id.ignore_limit:
+                return True
+        return False
+
+    @api.one
     def check_wip_limit(self, stage_id):
         """
         Checks the WIP item limit for the analyst, developer or reviewer
@@ -468,6 +482,8 @@ class ProjectTaskExtension(models.Model):
         :param stage_id: ``project.task.type`` id
         :type stage_id: int
         """
+        if self.ignore_wip_limit()[0]:
+            return False
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
         if stage.stage_type == 'queue' and stage.related_stage_id:
@@ -489,7 +505,7 @@ class ProjectTaskExtension(models.Model):
                     return self.reviewer_id.name + ' is overloaded'
         return False
 
-    @api.model
+    @api.one
     def check_stage_limit(self, stage_id):
         """
         Checks the WIP item limit for the stage and returns a
@@ -498,6 +514,8 @@ class ProjectTaskExtension(models.Model):
         :param stage_id: ``project.task.type`` id
         :type stage_id: int
         """
+        if self.ignore_wip_limit()[0]:
+            return False
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
         return stage.check_wip_limit()[0] if stage else False
@@ -512,6 +530,8 @@ class ProjectTaskExtension(models.Model):
         :param team_id: :mod:`team<team.KanbanUserTeam>` id
         :type team_id: int
         """
+        if self.ignore_wip_limit()[0]:
+            return False
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
         if stage.stage_type == 'queue' and stage.related_stage_id:

@@ -79,7 +79,7 @@ class TestStageWipLimit(common.SingleTransactionCase):
         self.task2.stage_id = self.other.id
         self.assertEqual(self.other.check_wip_limit()[0],
                          'Release stage is overloaded')
-        self.assertEqual(self.task_model.check_stage_limit(self.other.id),
+        self.assertEqual(self.task.check_stage_limit(self.other.id)[0],
                          'Release stage is overloaded')
 
     def test_10_check_wip_limit_no_warning_if_limit_is_0(self):
@@ -92,9 +92,9 @@ class TestStageWipLimit(common.SingleTransactionCase):
         self.task.stage_id = self.rel_ready.id
         self.assertEqual(self.other.check_wip_limit()[0],
                          'Release stage is overloaded')
-        self.assertEqual(self.task_model.check_stage_limit(self.other.id),
+        self.assertEqual(self.task2.check_stage_limit(self.other.id)[0],
                          'Release stage is overloaded')
         self.assertEqual(self.rel_ready.check_wip_limit()[0],
                          'Release stage is overloaded')
-        self.assertEqual(self.task_model.check_stage_limit(self.rel_ready.id),
+        self.assertEqual(self.task.check_stage_limit(self.rel_ready.id)[0],
                          'Release stage is overloaded')
