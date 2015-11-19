@@ -455,6 +455,7 @@ class ProjectTaskExtension(models.Model):
             color = tags.get_cos_colour()
             if color:
                 res.color = color
+            tags.check_deadline_required(vals.get('date_deadline'))
         return res
 
     @api.multi
@@ -501,6 +502,8 @@ class ProjectTaskExtension(models.Model):
             color = tags.get_cos_colour()
             if color:
                 self.color = color
+            for task in self:
+                tags.check_deadline_required(task.date_deadline)
         return res
 
     @api.one
@@ -728,6 +731,33 @@ class ProjectCategoryExtension(models.Model):
                     colour = cat.cos_id.colour
                     priority = cat.cos_id.priority
         return colour
+
+    @api.multi
+    def check_deadline_required(self, deadline):
+        """
+        Finds the highest priority color among the classes of service
+        related to the tags.
+
+        :param deadline: is deadline provided or not.
+        :type deadline: bool
+        :returns: True
+        :rtype: bool
+        """
+        for cat in self:
+            if cat.cos_id:
+                if cat.cos_id.deadline == 'required':
+                    if not deadline:
+                        raise models.except_orm(
+                            'Deadline required!',
+                            'This class of service requires deadline to be '
+                            'provided.')
+                elif cat.cos_id.deadline == 'nodate':
+                    if deadline:
+                        raise models.except_orm(
+                            'Deadline must NOT exist!',
+                            'This class of service requires deadline to be'
+                            'empty.')
+        return True
 
     @api.multi
     def write(self, vals):

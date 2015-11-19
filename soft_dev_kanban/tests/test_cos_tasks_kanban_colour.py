@@ -23,6 +23,7 @@ class TestCosTasksKanbanColour(common.SingleTransactionCase):
         cls.tag_urgent = cls.tag_model.search([['name', '=', 'Urgent']])
         cls.tag_demo = cls.tag_model.search([['name', '=', 'Demo Tag']])
         cls.cos_urgent.limit = 0
+        cls.cos_urgent.deadline = 'noreq'
 
     def test_01_tag_get_cos_color_returns_highest_priority_color(self):
         self.assertFalse(self.tag_demo.get_cos_colour())

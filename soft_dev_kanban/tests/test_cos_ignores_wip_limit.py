@@ -11,6 +11,7 @@ class TestCosIgnoresWipLimit(common.SingleTransactionCase):
         cls.stage_model = cls.env['project.task.type']
         cls.tag_model = cls.env['project.category']
         cls.team_model = cls.env['sdk.user.team']
+        cls.cos_model = cls.env['sdk.class_of_service']
 
         cls.analysis = cls.stage_model.search([['name', '=', 'Analysis']])
         cls.dev = cls.stage_model.search([['name', '=', 'Development']])
@@ -22,8 +23,9 @@ class TestCosIgnoresWipLimit(common.SingleTransactionCase):
             [['name', '=', 'Refactor Tests Code']])
         cls.task2 = cls.task_model.search([['name', '=', 'WIP Management']])
         cls.team = cls.team_model.search([['name', '=', 'SDK Demo Team']])
-
+        cls.cos_urgent = cls.cos_model.search([['name', '=', 'Urgent']])
         cls.tag_urgent = cls.tag_model.search([['name', '=', 'Urgent']])
+        cls.cos_urgent.deadline = 'noreq'
         cls.task.categ_ids = [cls.tag_urgent.id]
 
     def test_01_ignore_wip_limit_is_true_linked_with_ignore_limit_cos(self):

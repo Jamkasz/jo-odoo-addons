@@ -25,6 +25,7 @@ class TestCosLimitTaskAmount(common.SingleTransactionCase):
         cls.cos_demo = cls.cos_model.search([['name', '=', 'Demo CoS']])
         cls.tag_urgent = cls.tag_model.search([['name', '=', 'Urgent']])
         cls.tag_demo = cls.tag_model.search([['name', '=', 'Demo Tag']])
+        cls.cos_urgent.deadline = 'noreq'
 
     def test_01_finished_task_does_not_count_towards_cos_limit_amount(self):
         task = self.task_model.create({
