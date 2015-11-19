@@ -431,6 +431,29 @@ class ProjectTaskExtension(models.Model):
                     }}
         return res
 
+    @api.model
+    def create(self, vals):
+        """
+        Extends Odoo `create` method to do class of service checks.
+
+        :param vals: values dictionary
+        :type vals: dict
+        :returns: ``project.task`` id
+        :rtype: int
+        """
+        res = super(ProjectTaskExtension, self).create(vals)
+        if vals.get('categ_ids'):
+            tag_model = self.env['project.category']
+            tags = tag_model.browse(vals.get('categ_ids')[0][2]) \
+                if isinstance(vals.get('categ_ids')[0], (list, tuple)) \
+                else tag_model.browse(vals.get('categ_ids'))
+            if tags.cos_limit_overflow():
+                raise models.except_orm(
+                    'Class of Service Error!',
+                    'Cannot create a new task with that class of service, the '
+                    'maximum allowed amount has already been reached.')
+        return res
+
     @api.multi
     def write(self, vals):
         """
@@ -440,6 +463,11 @@ class ProjectTaskExtension(models.Model):
         It also records automatically the ``date_out`` of a task if
         the new stage is of type `done` and the ``date_in`` if a
         task is not type ``backlog`` and it doesn't have it already.
+
+        :param vals: values dictionary
+        :type vals: dict
+        :returns: True
+        :rtype: bool
         """
         if vals.get('stage_id'):
             stage_model = self.env['project.task.type']
@@ -456,7 +484,18 @@ class ProjectTaskExtension(models.Model):
                 vals['date_in'] = dt.now().strftime(dtf)
             if stage.stage_type == 'done' and not self.date_out:
                 vals['date_out'] = dt.now().strftime(dtf)
-        return super(ProjectTaskExtension, self).write(vals)
+        res = super(ProjectTaskExtension, self).write(vals)
+        if vals.get('categ_ids'):
+            tag_model = self.env['project.category']
+            tags = tag_model.browse(vals.get('categ_ids')[0][2]) \
+                if isinstance(vals.get('categ_ids')[0], (list, tuple)) \
+                else tag_model.browse(vals.get('categ_ids'))
+            if tags.cos_limit_overflow():
+                raise models.except_orm(
+                    'Class of Service Error!',
+                    'Cannot link another task with that class of service, the '
+                    'maximum allowed amount has already been reached.')
+        return res
 
     @api.one
     def ignore_wip_limit(self):
@@ -644,3 +683,43 @@ class ProjectCategoryExtension(models.Model):
     _inherit = 'project.category'
 
     cos_id = fields.Many2one('sdk.class_of_service', 'Class of Service')
+
+    @api.multi
+    def cos_limit_overflow(self):
+        """
+        Checks if the number of tasks related to the project categories
+        is greater than the related classes of service.
+
+        :returns: True or False
+        :rtype: bool
+        """
+        task_model = self.env['project.task']
+        for cat in self:
+            if cat.cos_id and cat.cos_id.limit:
+                cats = self.search([['cos_id', '=', cat.cos_id.id]])
+                cat_ids = [c.id for c in cats]
+                tasks = task_model.search([
+                    ['categ_ids', 'in', cat_ids],
+                    ['date_out', '=', False]])
+                if len(tasks) > cat.cos_id.limit:
+                    return True
+        return False
+
+    @api.multi
+    def write(self, vals):
+        """
+        Extends Odoo `write` method to do class of service checks.
+
+        :param vals: values dictionary
+        :type vals: dict
+        :returns: True
+        :rtype: bool
+        """
+        res = super(ProjectCategoryExtension, self).write(vals)
+        if vals.get('cos_id'):
+            if self.cos_limit_overflow():
+                raise models.except_orm(
+                    'Class of Service Error!',
+                    'Cannot link another tag with that class of service, as '
+                    'it would break the maximum task amount limit.')
+        return res

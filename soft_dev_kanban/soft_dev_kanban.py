@@ -73,8 +73,9 @@ class ClassOfService(models.Model):
 
     name = fields.Char('Name')
     limit = fields.Integer('Active Limited Amount', default=0)
-    colour = fields.Selection(_colour_selection, 'Kanban Colour')
+    colour = fields.Selection(_colour_selection, 'Kanban Colour', default=0)
     priority = fields.Integer('Colour Priority', default=0)
     ignore_limit = fields.Boolean('Ignore WIP limits', default=False)
-    deadline = fields.Selection(_deadline_selection, 'Task Deadline Date')
-    tag_ids = fields.One2many('project.category', 'cos_id', 'Tags')
+    deadline = fields.Selection(_deadline_selection, 'Task Deadline Date',
+                                default='noreq')
+    tag_ids = fields.One2many('project.category', 'cos_id', 'Tags', readonly=1)

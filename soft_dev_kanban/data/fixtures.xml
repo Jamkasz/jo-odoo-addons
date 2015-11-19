@@ -187,5 +187,21 @@
             <field name="resource_calendar_id" ref="resource.timesheet_group1"/>
         </record>
 
+        <!-- Classes of Service -->
+        <record id="sdk_cos_demo" model="sdk.class_of_service">
+            <field name="name">Demo CoS</field>
+        </record>
+
+        <!-- Tags -->
+        <record id="sdk_tag_urgent" model="project.category">
+            <field name="name">Urgent</field>
+            <field name="cos_id" ref="sdk_cos_urgent"/>
+        </record>
+
+        <record id="sdk_tag_demo" model="project.category">
+            <field name="name">Demo Tag</field>
+            <field name="cos_id" ref="sdk_cos_demo"/>
+        </record>
+
     </data>
 </openerp>
