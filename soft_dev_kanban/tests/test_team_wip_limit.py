@@ -89,7 +89,16 @@ class TestTeamWipLimit(common.SingleTransactionCase):
         self.assertEqual(self.task.check_team_limit(self.input.id)[0],
                          'SDK Demo Team is overloaded')
 
-    def test_08_check_wip_limit_dev_return_warning_if_overloaded(self):
+    def test_08_onchange_analyst_id_returns_warning(self):
+        self.assertDictEqual(
+            self.task.onchange_analyst_id(),
+            {
+                'warning':
+                    {'message': 'SDK Demo Team is overloaded',
+                     'title': 'Warning'}
+            })
+
+    def test_09_check_wip_limit_dev_return_warning_if_overloaded(self):
         self.task.stage_id = self.queue.id
         self.task2.stage_id = self.queue.id
         self.assertEqual(self.team.check_wip_limit()[0],
@@ -97,7 +106,16 @@ class TestTeamWipLimit(common.SingleTransactionCase):
         self.assertEqual(self.task.check_team_limit(self.queue.id)[0],
                          'SDK Demo Team is overloaded')
 
-    def test_09_check_wip_limit_review_return_warning_if_overloaded(self):
+    def test_10_onchange_user_id_returns_warning(self):
+        self.assertDictEqual(
+            self.task.onchange_user_id(),
+            {
+                'warning':
+                    {'message': 'SDK Demo Team is overloaded',
+                     'title': 'Warning'}
+            })
+
+    def test_11_check_wip_limit_review_return_warning_if_overloaded(self):
         self.task.stage_id = self.testready.id
         self.task2.stage_id = self.testready.id
         self.assertEqual(self.team.check_wip_limit()[0],
@@ -105,7 +123,16 @@ class TestTeamWipLimit(common.SingleTransactionCase):
         self.assertEqual(self.task.check_team_limit(self.testready.id)[0],
                          'SDK Demo Team is overloaded')
 
-    def test_10_check_wip_limit_no_warning_if_limit_is_0(self):
+    def test_12_onchange_reviewer_id_returns_warning(self):
+        self.assertDictEqual(
+            self.task.onchange_reviewer_id(),
+            {
+                'warning':
+                    {'message': 'SDK Demo Team is overloaded',
+                     'title': 'Warning'}
+            })
+
+    def test_13_check_wip_limit_no_warning_if_limit_is_0(self):
         self.team.wip_limit = 0
         self.assertFalse(self.team.check_wip_limit()[0])
         self.assertFalse(self.task.check_team_limit(self.input.id)[0])

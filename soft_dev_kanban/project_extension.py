@@ -361,17 +361,24 @@ class ProjectTaskExtension(models.Model):
         """
         Shows a warning message if the analyst assigned is being
         overloaded above the work in progress limit.
+        Same if any of the user teams is overloaded.
         """
         res = {}
-        if self.stage_id.stage_type == 'analysis' and \
-                self.analyst_id.wip_limit:
-            if self.analyst_id.current_wip_items(
-            )[0] >= self.analyst_id.wip_limit:
-                res = {'warning': {
-                    'title': 'Warning',
-                    'message': '{0} is overloaded (too much WIP)'.format(
-                        self.analyst_id.name)
-                }}
+        if self.analyst_id:
+            if self.analyst_id.wip_limit:
+                message = self.check_wip_limit(self.stage_id.id)[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
+            for team in self.analyst_id.team_ids:
+                message = team.check_wip_limit()[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
         return res
 
     @api.onchange('user_id')
@@ -379,15 +386,24 @@ class ProjectTaskExtension(models.Model):
         """
         Shows a warning message if the user assigned is being
         overloaded above the work in progress limit.
+        Same if any of the user teams is overloaded.
         """
         res = {}
-        if self.stage_id.stage_type == 'dev' and self.user_id.wip_limit:
-            if self.user_id.current_wip_items()[0] >= self.user_id.wip_limit:
-                res = {'warning': {
-                    'title': 'Warning',
-                    'message': "{0} is overloaded (too much WIP)".format(
-                        self.user_id.name)
-                }}
+        if self.user_id:
+            if self.user_id.wip_limit:
+                message = self.check_wip_limit(self.stage_id.id)[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
+            for team in self.user_id.team_ids:
+                message = team.check_wip_limit()[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
         return res
 
     @api.onchange('reviewer_id')
@@ -395,16 +411,24 @@ class ProjectTaskExtension(models.Model):
         """
         Shows a warning message if the user assigned is being
         overloaded above the work in progress limit.
+        Same if any of the user teams is overloaded.
         """
         res = {}
-        if self.stage_id.stage_type == 'review' and self.reviewer_id.wip_limit:
-            if self.reviewer_id.current_wip_items()[0] >= \
-                    self.reviewer_id.wip_limit:
-                res = {'warning': {
-                    'title': 'Warning',
-                    'message': '{0} is overloaded (too much WIP)'.format(
-                        self.reviewer_id.name)
-                }}
+        if self.reviewer_id:
+            if self.reviewer_id.wip_limit:
+                message = self.check_wip_limit(self.stage_id.id)[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
+            for team in self.reviewer_id.team_ids:
+                message = team.check_wip_limit()[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
         return res
 
     @api.multi
