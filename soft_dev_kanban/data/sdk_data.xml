@@ -1,0 +1,13 @@
+<openerp>
+    <data>
+        <!-- Classes of Service -->
+        <record id="sdk_cos_urgent" model="sdk.class_of_service">
+            <field name="name">Urgent</field>
+            <field name="limit">1</field>
+            <field name="colour" eval="9"/>
+            <field name="priority">1</field>
+            <field name="ignore_limit" eval="True"/>
+            <field name="deadline">required</field>
+        </record>
+    </data>
+</openerp>

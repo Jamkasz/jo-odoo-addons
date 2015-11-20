@@ -56,7 +56,7 @@ class TestTaskWipManagement(common.SingleTransactionCase):
             self.task.onchange_user_id(),
             {
                 'warning':
-                    {'message': 'SDK Demo User is overloaded (too much WIP)',
+                    {'message': 'SDK Demo User is overloaded',
                      'title': 'Warning'}
             })
 
@@ -75,7 +75,7 @@ class TestTaskWipManagement(common.SingleTransactionCase):
             self.task.onchange_analyst_id(),
             {
                 'warning':
-                    {'message': 'SDK Demo User is overloaded (too much WIP)',
+                    {'message': 'SDK Demo User is overloaded',
                      'title': 'Warning'}
             })
 
@@ -94,7 +94,7 @@ class TestTaskWipManagement(common.SingleTransactionCase):
             self.task.onchange_reviewer_id(),
             {
                 'warning':
-                    {'message': 'SDK Demo User is overloaded (too much WIP)',
+                    {'message': 'SDK Demo User is overloaded',
                      'title': 'Warning'}
             })
 

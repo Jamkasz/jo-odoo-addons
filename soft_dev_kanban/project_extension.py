@@ -361,17 +361,24 @@ class ProjectTaskExtension(models.Model):
         """
         Shows a warning message if the analyst assigned is being
         overloaded above the work in progress limit.
+        Same if any of the user teams is overloaded.
         """
         res = {}
-        if self.stage_id.stage_type == 'analysis' and \
-                self.analyst_id.wip_limit:
-            if self.analyst_id.current_wip_items(
-            )[0] >= self.analyst_id.wip_limit:
-                res = {'warning': {
-                    'title': 'Warning',
-                    'message': '{0} is overloaded (too much WIP)'.format(
-                        self.analyst_id.name)
-                }}
+        if self.analyst_id:
+            if self.analyst_id.wip_limit:
+                message = self.check_wip_limit(self.stage_id.id)[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
+            if self.analyst_id.team_ids:
+                message = self.check_team_limit(self.stage_id.id)[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
         return res
 
     @api.onchange('user_id')
@@ -379,15 +386,24 @@ class ProjectTaskExtension(models.Model):
         """
         Shows a warning message if the user assigned is being
         overloaded above the work in progress limit.
+        Same if any of the user teams is overloaded.
         """
         res = {}
-        if self.stage_id.stage_type == 'dev' and self.user_id.wip_limit:
-            if self.user_id.current_wip_items()[0] >= self.user_id.wip_limit:
-                res = {'warning': {
-                    'title': 'Warning',
-                    'message': "{0} is overloaded (too much WIP)".format(
-                        self.user_id.name)
-                }}
+        if self.user_id:
+            if self.user_id.wip_limit:
+                message = self.check_wip_limit(self.stage_id.id)[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
+            if self.user_id.team_ids:
+                message = self.check_team_limit(self.stage_id.id)[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
         return res
 
     @api.onchange('reviewer_id')
@@ -395,16 +411,51 @@ class ProjectTaskExtension(models.Model):
         """
         Shows a warning message if the user assigned is being
         overloaded above the work in progress limit.
+        Same if any of the user teams is overloaded.
         """
         res = {}
-        if self.stage_id.stage_type == 'review' and self.reviewer_id.wip_limit:
-            if self.reviewer_id.current_wip_items()[0] >= \
-                    self.reviewer_id.wip_limit:
-                res = {'warning': {
-                    'title': 'Warning',
-                    'message': '{0} is overloaded (too much WIP)'.format(
-                        self.reviewer_id.name)
-                }}
+        if self.reviewer_id:
+            if self.reviewer_id.wip_limit:
+                message = self.check_wip_limit(self.stage_id.id)[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
+            if self.reviewer_id.team_ids:
+                message = self.check_team_limit(self.stage_id.id)[0]
+                if message:
+                    return {'warning': {
+                        'title': 'Warning',
+                        'message': message
+                    }}
+        return res
+
+    @api.model
+    def create(self, vals):
+        """
+        Extends Odoo `create` method to do class of service checks.
+
+        :param vals: values dictionary
+        :type vals: dict
+        :returns: ``project.task`` id
+        :rtype: int
+        """
+        res = super(ProjectTaskExtension, self).create(vals)
+        if vals.get('categ_ids'):
+            tag_model = self.env['project.category']
+            tags = tag_model.browse(vals.get('categ_ids')[0][2]) \
+                if isinstance(vals.get('categ_ids')[0], (list, tuple)) \
+                else tag_model.browse(vals.get('categ_ids'))
+            if tags.cos_limit_overflow():
+                raise models.except_orm(
+                    'Class of Service Error!',
+                    'Cannot create a new task with that class of service, the '
+                    'maximum allowed amount has already been reached.')
+            color = tags.get_cos_colour()
+            if color:
+                res.color = color
+            tags.check_deadline_required(vals.get('date_deadline'))
         return res
 
     @api.multi
@@ -416,6 +467,11 @@ class ProjectTaskExtension(models.Model):
         It also records automatically the ``date_out`` of a task if
         the new stage is of type `done` and the ``date_in`` if a
         task is not type ``backlog`` and it doesn't have it already.
+
+        :param vals: values dictionary
+        :type vals: dict
+        :returns: True
+        :rtype: bool
         """
         if vals.get('stage_id'):
             stage_model = self.env['project.task.type']
@@ -432,7 +488,37 @@ class ProjectTaskExtension(models.Model):
                 vals['date_in'] = dt.now().strftime(dtf)
             if stage.stage_type == 'done' and not self.date_out:
                 vals['date_out'] = dt.now().strftime(dtf)
-        return super(ProjectTaskExtension, self).write(vals)
+        res = super(ProjectTaskExtension, self).write(vals)
+        if vals.get('categ_ids'):
+            tag_model = self.env['project.category']
+            tags = tag_model.browse(vals.get('categ_ids')[0][2]) \
+                if isinstance(vals.get('categ_ids')[0], (list, tuple)) \
+                else tag_model.browse(vals.get('categ_ids'))
+            if tags.cos_limit_overflow():
+                raise models.except_orm(
+                    'Class of Service Error!',
+                    'Cannot link another task with that class of service, the '
+                    'maximum allowed amount has already been reached.')
+            color = tags.get_cos_colour()
+            if color:
+                self.color = color
+            for task in self:
+                tags.check_deadline_required(task.date_deadline)
+        return res
+
+    @api.one
+    def ignore_wip_limit(self):
+        """
+        Checks if the task is related to any tag linked with a class
+        of service that ignores WIP limits.
+
+        :returns: True or False
+        :rtype: bool
+        """
+        for tag in self.categ_ids:
+            if tag.cos_id and tag.cos_id.ignore_limit:
+                return True
+        return False
 
     @api.one
     def check_wip_limit(self, stage_id):
@@ -444,6 +530,8 @@ class ProjectTaskExtension(models.Model):
         :param stage_id: ``project.task.type`` id
         :type stage_id: int
         """
+        if self.ignore_wip_limit()[0]:
+            return False
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
         if stage.stage_type == 'queue' and stage.related_stage_id:
@@ -465,7 +553,7 @@ class ProjectTaskExtension(models.Model):
                     return self.reviewer_id.name + ' is overloaded'
         return False
 
-    @api.model
+    @api.one
     def check_stage_limit(self, stage_id):
         """
         Checks the WIP item limit for the stage and returns a
@@ -474,6 +562,8 @@ class ProjectTaskExtension(models.Model):
         :param stage_id: ``project.task.type`` id
         :type stage_id: int
         """
+        if self.ignore_wip_limit()[0]:
+            return False
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
         return stage.check_wip_limit()[0] if stage else False
@@ -488,6 +578,8 @@ class ProjectTaskExtension(models.Model):
         :param team_id: :mod:`team<team.KanbanUserTeam>` id
         :type team_id: int
         """
+        if self.ignore_wip_limit()[0]:
+            return False
         stage_model = self.env['project.task.type']
         stage = stage_model.browse(stage_id)
         if stage.stage_type == 'queue' and stage.related_stage_id:
@@ -590,3 +682,104 @@ class ProjectExtension(models.Model):
         task_ids.update_date_in()
         task_ids.update_date_out()
         return True
+
+
+class ProjectCategoryExtension(models.Model):
+    """
+    Extends `project.category` Odoo model to add kanban class of service
+    """
+    _name = 'project.category'
+    _inherit = 'project.category'
+
+    cos_id = fields.Many2one('sdk.class_of_service', 'Class of Service')
+
+    @api.multi
+    def cos_limit_overflow(self):
+        """
+        Checks if the number of tasks related to the project categories
+        is greater than the related classes of service.
+
+        :returns: True or False
+        :rtype: bool
+        """
+        task_model = self.env['project.task']
+        for cat in self:
+            if cat.cos_id and cat.cos_id.limit:
+                cats = self.search([['cos_id', '=', cat.cos_id.id]])
+                cat_ids = [c.id for c in cats]
+                tasks = task_model.search([
+                    ['categ_ids', 'in', cat_ids],
+                    ['date_out', '=', False]])
+                if len(tasks) > cat.cos_id.limit:
+                    return True
+        return False
+
+    @api.multi
+    def get_cos_colour(self):
+        """
+        Finds the highest priority color among the classes of service
+        related to the tags.
+
+        :returns: color index
+        :rtype: int
+        """
+        colour = 0
+        priority = 0
+        for cat in self:
+            if cat.cos_id and cat.cos_id.colour:
+                if cat.cos_id.priority < priority or not priority:
+                    colour = cat.cos_id.colour
+                    priority = cat.cos_id.priority
+        return colour
+
+    @api.multi
+    def check_deadline_required(self, deadline):
+        """
+        Finds the highest priority color among the classes of service
+        related to the tags.
+
+        :param deadline: is deadline provided or not.
+        :type deadline: bool
+        :returns: True
+        :rtype: bool
+        """
+        for cat in self:
+            if cat.cos_id:
+                if cat.cos_id.deadline == 'required':
+                    if not deadline:
+                        raise models.except_orm(
+                            'Deadline required!',
+                            'This class of service requires deadline to be '
+                            'provided.')
+                elif cat.cos_id.deadline == 'nodate':
+                    if deadline:
+                        raise models.except_orm(
+                            'Deadline must NOT exist!',
+                            'This class of service requires deadline to be'
+                            'empty.')
+        return True
+
+    @api.multi
+    def write(self, vals):
+        """
+        Extends Odoo `write` method to do class of service checks.
+
+        :param vals: values dictionary
+        :type vals: dict
+        :returns: True
+        :rtype: bool
+        """
+        res = super(ProjectCategoryExtension, self).write(vals)
+        if vals.get('cos_id'):
+            if self.cos_limit_overflow():
+                raise models.except_orm(
+                    'Class of Service Error!',
+                    'Cannot link another tag with that class of service, as '
+                    'it would break the maximum task amount limit.')
+            task_model = self.env['project.task']
+            tasks = task_model.search(
+                [['categ_ids', 'in', [c.id for c in self]]])
+            color = self.get_cos_colour()
+            if color:
+                tasks.write({'color': color})
+        return res

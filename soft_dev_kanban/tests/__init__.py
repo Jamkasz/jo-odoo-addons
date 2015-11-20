@@ -8,3 +8,7 @@ import test_stage_related_stage
 import test_stage_wip_limit
 import test_team_wip_limit
 import test_log_message_wizard
+import test_cos_ignores_wip_limit
+import test_cos_limit_task_amount
+import test_cos_tasks_kanban_colour
+import test_cos_deadline_requirement
