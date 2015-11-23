@@ -15,11 +15,11 @@ Extension of the Project Kanban features to match better the Software Developmen
 - [X] Stage WIP limit
 - [X] Team WIP limit
 - [X] Task Blocked Reason
-- [ ] Class of Service: Urgent
+- [X] Class of Service: Urgent
 - [ ] Class of Service: Fixed Delivery Date
 - [ ] Class of Service: Regular
 - [ ] Class of Service: Intangible
-- [ ] Class of Service: Defect
+- [X] Class of Service: Defect
 
 ## To use
 Just add the addon you want into your Odoo addons path and install it

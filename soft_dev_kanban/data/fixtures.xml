@@ -198,6 +198,11 @@
             <field name="cos_id" ref="sdk_cos_urgent"/>
         </record>
 
+        <record id="sdk_tag_defect" model="project.category">
+            <field name="name">Defect</field>
+            <field name="cos_id" ref="sdk_cos_defect"/>
+        </record>
+
         <record id="sdk_tag_demo" model="project.category">
             <field name="name">Demo Tag</field>
             <field name="cos_id" ref="sdk_cos_demo"/>
