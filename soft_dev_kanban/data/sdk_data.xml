@@ -10,6 +10,13 @@
             <field name="deadline">required</field>
         </record>
 
+        <record id="sdk_cos_fdd" model="sdk.class_of_service">
+            <field name="name">Fixed Delivery Date</field>
+            <field name="colour" eval="8"/>
+            <field name="priority">10</field>
+            <field name="deadline">required</field>
+        </record>
+
         <record id="sdk_cos_defect" model="sdk.class_of_service">
             <field name="name">Defect</field>
             <field name="colour" eval="2"/>
