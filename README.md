@@ -18,7 +18,7 @@ Extension of the Project Kanban features to match better the Software Developmen
 - [X] Class of Service: Urgent
 - [ ] Class of Service: Fixed Delivery Date
 - [ ] Class of Service: Regular
-- [ ] Class of Service: Intangible
+- [X] Class of Service: Intangible
 - [X] Class of Service: Defect
 
 ## To use

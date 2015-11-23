@@ -15,5 +15,12 @@
             <field name="colour" eval="2"/>
             <field name="priority">20</field>
         </record>
+
+        <record id="sdk_cos_intangible" model="sdk.class_of_service">
+            <field name="name">Intangible</field>
+            <field name="colour" eval="4"/>
+            <field name="priority">40</field>
+            <field name="deadline">nodate</field>
+        </record>
     </data>
 </openerp>

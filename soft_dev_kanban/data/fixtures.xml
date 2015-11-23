@@ -203,6 +203,11 @@
             <field name="cos_id" ref="sdk_cos_defect"/>
         </record>
 
+        <record id="sdk_tag_intangible" model="project.category">
+            <field name="name">Intangible</field>
+            <field name="cos_id" ref="sdk_cos_intangible"/>
+        </record>
+
         <record id="sdk_tag_demo" model="project.category">
             <field name="name">Demo Tag</field>
             <field name="cos_id" ref="sdk_cos_demo"/>
