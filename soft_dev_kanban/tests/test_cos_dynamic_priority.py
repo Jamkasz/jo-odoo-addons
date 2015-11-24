@@ -1,14 +1,12 @@
 from openerp.tests import common
-from openerp.models import except_orm
 from datetime import datetime as dt, timedelta as td
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 
 
-class TestCosDeadlineRequirement(common.SingleTransactionCase):
+class TestCosDynamicPriority(common.SingleTransactionCase):
 
     @classmethod
     def setUpClass(cls):
-        super(TestCosDeadlineRequirement, cls).setUpClass()
+        super(TestCosDynamicPriority, cls).setUpClass()
         cls.task_model = cls.env['project.task']
         cls.user_model = cls.env['res.users']
         cls.tag_model = cls.env['project.category']
