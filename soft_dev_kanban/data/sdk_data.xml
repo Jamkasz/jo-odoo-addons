@@ -14,6 +14,9 @@
             <field name="name">Fixed Delivery Date</field>
             <field name="colour" eval="8"/>
             <field name="priority">10</field>
+            <field name="dynamic_priority">deadline</field>
+            <field name="deadline_high">1.25</field>
+            <field name="deadline_normal">3</field>
             <field name="deadline">required</field>
         </record>
 

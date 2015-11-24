@@ -70,6 +70,9 @@ class ClassOfService(models.Model):
     _deadline_selection = [['required', 'Required'],
                            ['nodate', 'Must be Empty'],
                            ['noreq', 'Not Required']]
+    _dynprio_selection = [['none', 'Manual'],
+                          ['deadline', 'The closer deadline gets'],
+                          ['blocked', 'The longer stays in stage']]
 
     name = fields.Char('Name')
     limit = fields.Integer('Active Limited Amount', default=0)
@@ -78,6 +81,13 @@ class ClassOfService(models.Model):
     ignore_limit = fields.Boolean('Ignore WIP limits', default=False)
     deadline = fields.Selection(_deadline_selection, 'Task Deadline Date',
                                 default='noreq')
+    dynamic_priority = fields.Selection(_dynprio_selection,
+                                        'Dynamic Priority Changes',
+                                        default='none')
+    deadline_normal = fields.Float('x times Lead Time - Normal priority')
+    deadline_high = fields.Float('x times Lead Time - High priority')
+    time_normal = fields.Integer('Days - Normal priority')
+    time_high = fields.Integer('Days - High priority')
     tag_ids = fields.One2many('project.category', 'cos_id', 'Tags', readonly=1)
 
     @api.multi
