@@ -6,6 +6,7 @@ from openerp.models import Environment
 from openerp import models, fields, api
 from datetime import datetime as dt
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as dtf
+from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as DF
 
 
 class ProjectTaskHistoryExtension(models.Model):
@@ -197,6 +198,7 @@ class ProjectTaskExtension(models.Model):
     """
     _name = 'project.task'
     _inherit = 'project.task'
+    _priority_selection = [('0', 'Low'), ('1', 'Normal'), ('2', 'High')]
 
     total_time = fields.Integer(
         string='Lead Time', compute='_compute_total_time',
@@ -208,6 +210,9 @@ class ProjectTaskExtension(models.Model):
                                  track_visibility='onchange')
     date_in = fields.Datetime('Date In')
     date_out = fields.Datetime('Date Out')
+    dynamic_priority = fields.Selection(
+        _priority_selection, string='Dynamic Priority',
+        compute='_compute_priority', store=False, readonly=True)
 
     @api.model
     def _message_get_auto_subscribe_fields(self, updated_fields,
@@ -258,9 +263,6 @@ class ProjectTaskExtension(models.Model):
 
         If the task is related to a project with a working hours
         calendar, it returns only the working hours.
-
-        :returns: time in hours
-        :rtype: int
         """
         if self.date_out:
             date_end = dt.strptime(self.date_out, dtf)
@@ -281,9 +283,6 @@ class ProjectTaskExtension(models.Model):
 
         If the task is related to a project with a working hours
         calendar, it returns only the working hours.
-
-        :returns: time in hours
-        :rtype: int
         """
         if self.date_out:
             date_end = dt.strptime(self.date_out, dtf)
@@ -355,6 +354,45 @@ class ProjectTaskExtension(models.Model):
                 else dt.strptime(self.date_last_stage_update, dtf)
             result += self.get_working_hours(date_start, date)[0]
         return result
+
+    @api.one
+    def get_dynamic_priority(self):
+        """
+        Gets priority value to set to the task depending on the related
+        tags.
+
+        :returns: '0', '1' or '2'
+        :rtype: str
+        """
+        for cat in self.categ_ids:
+            if cat.cos_id:
+                if cat.cos_id.dynamic_priority == 'deadline':
+                    pld = self.project_id.average_lead_time
+                    if pld > 0 and self.date_deadline:
+                        deadline = dt.strptime(self.date_deadline, DF)
+                        time = self.get_working_hours(dt.today(), deadline)
+                        if cat.cos_id.deadline_high*pld >= time[0]:
+                            return '2'
+                        if cat.cos_id.deadline_normal*pld >= time[0]:
+                            return '1'
+                        return '0'
+                elif cat.cos_id.dynamic_priority == 'blocked':
+                    stage = dt.strptime(self.date_last_stage_update, dtf)
+                    time = dt.now()-stage
+                    if cat.cos_id.time_high <= time.days:
+                        return '2'
+                    if cat.cos_id.time_normal <= time.days:
+                        return '1'
+                    return '0'
+        return False
+
+    @api.one
+    def _compute_priority(self):
+        """
+        Computes the priority of the task depending on the related
+        classes of service.
+        """
+        self.dynamic_priority = self.get_dynamic_priority()[0]
 
     @api.onchange('analyst_id')
     def onchange_analyst_id(self):
@@ -735,8 +773,8 @@ class ProjectCategoryExtension(models.Model):
     @api.multi
     def check_deadline_required(self, deadline):
         """
-        Finds the highest priority color among the classes of service
-        related to the tags.
+        Raises exception if deadline is required but not provided or
+        if deadline must be empty and is provided.
 
         :param deadline: is deadline provided or not.
         :type deadline: bool

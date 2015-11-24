@@ -203,6 +203,11 @@
             <field name="cos_id" ref="sdk_cos_defect"/>
         </record>
 
+        <record id="sdk_tag_fdd" model="project.category">
+            <field name="name">Deadline</field>
+            <field name="cos_id" ref="sdk_cos_fdd"/>
+        </record>
+
         <record id="sdk_tag_intangible" model="project.category">
             <field name="name">Intangible</field>
             <field name="cos_id" ref="sdk_cos_intangible"/>
