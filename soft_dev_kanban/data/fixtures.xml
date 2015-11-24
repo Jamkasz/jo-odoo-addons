@@ -208,6 +208,11 @@
             <field name="cos_id" ref="sdk_cos_fdd"/>
         </record>
 
+        <record id="sdk_tag_regular" model="project.category">
+            <field name="name">Regular</field>
+            <field name="cos_id" ref="sdk_cos_regular"/>
+        </record>
+
         <record id="sdk_tag_intangible" model="project.category">
             <field name="name">Intangible</field>
             <field name="cos_id" ref="sdk_cos_intangible"/>

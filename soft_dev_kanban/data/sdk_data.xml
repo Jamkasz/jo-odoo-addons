@@ -26,6 +26,16 @@
             <field name="priority">20</field>
         </record>
 
+        <record id="sdk_cos_regular" model="sdk.class_of_service">
+            <field name="name">Regular</field>
+            <field name="colour" eval="3"/>
+            <field name="priority">30</field>
+            <field name="dynamic_priority">blocked</field>
+            <field name="time_high">7</field>
+            <field name="time_normal">3</field>
+            <field name="deadline">nodate</field>
+        </record>
+
         <record id="sdk_cos_intangible" model="sdk.class_of_service">
             <field name="name">Intangible</field>
             <field name="colour" eval="4"/>
