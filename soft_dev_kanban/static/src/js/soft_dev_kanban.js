@@ -27,8 +27,8 @@ openerp.soft_dev_kanban = function (instance) {
                                     self.do_warn('Warning', r);
                                 }
                             });
-                            self.view.dataset.call('check_stage_limit', [change['stage_id']]).done(function (r) {
-                                if (r != false){
+                            self.view.dataset.call('check_stage_limit', [self.view.datarecord.id, change['stage_id']]).done(function (r) {
+                                if (r[0] != false){
                                     self.do_warn('Warning', r);
                                 }
                             });
@@ -150,8 +150,8 @@ openerp.soft_dev_kanban = function (instance) {
                                    self.do_warn('Warning', r);
                                }
                             });
-                            self.dataset.call('check_stage_limit', [new_group.value]).done(function (r){
-                               if (r != false){
+                            self.dataset.call('check_stage_limit', [record.id, new_group.value]).done(function (r){
+                               if (r[0] != false){
                                    self.do_warn('Warning', r);
                                }
                             });
