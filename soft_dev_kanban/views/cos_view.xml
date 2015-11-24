@@ -27,6 +27,19 @@
                                     </field>
                                 </group>
                             </page>
+                            <page string="Advanced Settings">
+                                <group string="Dynamic Priority">
+                                    <field name="dynamic_priority"/>
+                                    <field name="deadline_normal"
+                                           attrs="{'invisible':[['dynamic_priority','!=','deadline']]}"/>
+                                    <field name="deadline_high"
+                                           attrs="{'invisible':[['dynamic_priority','!=','deadline']]}"/>/>
+                                    <field name="time_normal"
+                                           attrs="{'invisible':[['dynamic_priority','!=','blocked']]}"/>
+                                    <field name="time_high"
+                                           attrs="{'invisible':[['dynamic_priority','!=','blocked']]}"/>
+                                </group>
+                            </page>
                         </notebook>
                     </sheet>
                 </form>

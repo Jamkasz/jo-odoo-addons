@@ -84,10 +84,24 @@ class ClassOfService(models.Model):
     dynamic_priority = fields.Selection(_dynprio_selection,
                                         'Dynamic Priority Changes',
                                         default='none')
-    deadline_normal = fields.Float('x times Lead Time - Normal priority')
-    deadline_high = fields.Float('x times Lead Time - High priority')
-    time_normal = fields.Integer('Days - Normal priority')
-    time_high = fields.Integer('Days - High priority')
+    deadline_normal = fields.Float(
+        'Normal Priority Breakpoint',
+        help="If the remaining time until the deadline is less than the "
+             "average lead time * times this number, priority will increase "
+             "to Normal")
+    deadline_high = fields.Float(
+        'High Priority Breakpoint',
+        help="If the remaining time until the deadline is less than the "
+             "average lead time * times this number, priority will increase "
+             "to High")
+    time_normal = fields.Integer(
+        'Normal Priority (# Days)',
+        help="If the task stays for this amount of days in the same stage, "
+             "priority will increase to Normal")
+    time_high = fields.Integer(
+        'High Priority (# Days)',
+        help="If the task stays for this amount of days in the same stage, "
+             "priority will increase to High")
     tag_ids = fields.One2many('project.category', 'cos_id', 'Tags', readonly=1)
 
     @api.multi
