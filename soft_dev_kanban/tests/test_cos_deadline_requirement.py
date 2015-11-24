@@ -61,3 +61,12 @@ class TestCosDeadlineRequirement(common.SingleTransactionCase):
         self.task.date_deadline = dt.today().strftime(DF)
         with self.assertRaises(except_orm):
             self.task.categ_ids = [self.tag_demo.id]
+
+    def test_08_task_write_deadline_raises_if_cos_req_no_deadline(self):
+        with self.assertRaises(except_orm):
+            self.task.date_deadline = dt.today()
+
+    def test_09_task_delete_deadline_raises_if_cos_req_deadline(self):
+        self.cos_demo.deadline = 'required'
+        with self.assertRaises(except_orm):
+            self.task.date_deadline = False

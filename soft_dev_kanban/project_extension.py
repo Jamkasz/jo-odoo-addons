@@ -542,6 +542,10 @@ class ProjectTaskExtension(models.Model):
                 self.color = color
             for task in self:
                 tags.check_deadline_required(task.date_deadline)
+        elif 'date_deadline' in vals:
+            for task in self:
+                task.categ_ids.check_deadline_required(
+                    vals.get('date_deadline'))
         return res
 
     @api.one
@@ -793,7 +797,7 @@ class ProjectCategoryExtension(models.Model):
                     if deadline:
                         raise models.except_orm(
                             'Deadline must NOT exist!',
-                            'This class of service requires deadline to be'
+                            'This class of service requires deadline to be '
                             'empty.')
         return True
 
