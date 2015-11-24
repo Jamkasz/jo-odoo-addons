@@ -7,19 +7,35 @@ Extensions for Odoo not available in the default addons.
 
 Extension of the Project Kanban features to match better the Software Development Kanban working practices
 
-<b>Features:</b>
+#### Feature Backlog:
+<b>Metrics</b>
 - [X] Task Lead Times
 - [X] Project Average Lead Time
-- [X] Employee Average Throughput
-- [X] Employee Load Management (individual WIP limit)
+- [X] User Average Throughput
+- [ ] Cycle Time
+- [ ] Graphs / Statistics
+- [ ] SPC Chart
+- [ ] Cumulative Flow Diagram
+
+<b>Work In Progress Management</b>
+- [X] User Individual WIP limit
 - [X] Stage WIP limit
+- [ ] Stage WIP limit Visual Indicators
 - [X] Team WIP limit
 - [X] Task Blocked Reason
-- [X] Class of Service: Urgent
-- [X] Class of Service: Fixed Delivery Date
-- [X] Class of Service: Regular
-- [X] Class of Service: Intangible
-- [X] Class of Service: Defect
+
+<b>Classes of Service</b>
+- [X] Urgent
+- [X] Fixed Delivery Date
+- [X] Regular Work
+- [X] Intangible
+- [X] Defect
+
+<b>Planning and Estimating</b>
+- [ ] Order point
+- [ ] Priority Filter View
+- [ ] Disneyland Wait Times
+- [ ] T-shirt Size Estimation
 
 ## To use
 Just add the addon you want into your Odoo addons path and install it
