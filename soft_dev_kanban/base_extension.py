@@ -33,15 +33,17 @@ class ResUsersExtension(models.Model):
 
         It always updates the ``date_last_wip_update``
         """
+        values = {}
         if self.date_last_wip_update == date.today().strftime(DF) or \
                 not self.date_last_wip_update:
-            self.wi_finished += 1
+            values['wi_finished'] = self.wi_finished + 1
         else:
-            self.throughput = (self.throughput * self.total_days +
-                               self.wi_finished) / (self.total_days + 1)
-            self.wi_finished = 1
-            self.total_days += 1
-        self.date_last_wip_update = date.today().strftime(DF)
+            values['throughput'] = (self.throughput * self.total_days +
+                                    self.wi_finished) / (self.total_days + 1)
+            values['wi_finished'] = 1
+            values['total_days'] = self.total_days + 1
+        values['date_last_wip_update'] = date.today().strftime(DF)
+        self.write(values)
 
     @api.one
     def current_wip_items(self):
