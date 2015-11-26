@@ -512,7 +512,6 @@ class ProjectTaskExtension(models.Model):
         :rtype: bool
         """
         if vals.get('stage_id'):
-            stage_model = self.env['project.task.type']
             self.filtered(
                 lambda t:
                 t.stage_id.stage_type == 'dev' and t.user_id
@@ -525,7 +524,7 @@ class ProjectTaskExtension(models.Model):
                 lambda t:
                 t.stage_id.stage_type == 'review' and t.reviewer_id
             ).reviewer_id.add_finished_item()
-            stage = stage_model.browse(vals.get('stage_id'))
+            stage = self.env['project.task.type'].browse(vals.get('stage_id'))
             if stage.stage_type != 'backlog' and not self.date_in:
                 vals['date_in'] = dt.now().strftime(dtf)
             if stage.stage_type == 'done' and not self.date_out:
