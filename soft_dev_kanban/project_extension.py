@@ -513,14 +513,18 @@ class ProjectTaskExtension(models.Model):
         """
         if vals.get('stage_id'):
             stage_model = self.env['project.task.type']
-            for task in self:
-                if task.stage_id.stage_type == 'dev' and task.user_id:
-                    task.user_id.add_finished_item()
-                elif task.stage_id.stage_type == 'review' and task.reviewer_id:
-                    task.reviewer_id.add_finished_item()
-                elif task.stage_id.stage_type == 'analysis' and \
-                        task.analyst_id:
-                    task.analyst_id.add_finished_item()
+            self.filtered(
+                lambda t:
+                t.stage_id.stage_type == 'dev' and t.user_id
+            ).user_id.add_finished_item()
+            self.filtered(
+                lambda t:
+                t.stage_id.stage_type == 'analysis' and t.analyst_id
+            ).analyst_id.add_finished_item()
+            self.filtered(
+                lambda t:
+                t.stage_id.stage_type == 'review' and t.reviewer_id
+            ).reviewer_id.add_finished_item()
             stage = stage_model.browse(vals.get('stage_id'))
             if stage.stage_type != 'backlog' and not self.date_in:
                 vals['date_in'] = dt.now().strftime(dtf)
@@ -543,9 +547,7 @@ class ProjectTaskExtension(models.Model):
             for task in self:
                 tags.check_deadline_required(task.date_deadline)
         elif 'date_deadline' in vals:
-            for task in self:
-                task.categ_ids.check_deadline_required(
-                    vals.get('date_deadline'))
+            self.categ_ids.check_deadline_required(vals.get('date_deadline'))
         return res
 
     @api.one
@@ -785,20 +787,19 @@ class ProjectCategoryExtension(models.Model):
         :returns: True
         :rtype: bool
         """
-        for cat in self:
-            if cat.cos_id:
-                if cat.cos_id.deadline == 'required':
-                    if not deadline:
-                        raise models.except_orm(
-                            'Deadline required!',
-                            'This class of service requires deadline to be '
-                            'provided.')
-                elif cat.cos_id.deadline == 'nodate':
-                    if deadline:
-                        raise models.except_orm(
-                            'Deadline must NOT exist!',
-                            'This class of service requires deadline to be '
-                            'empty.')
+        if self.filtered(
+                lambda c: c.cos_id and c.cos_id.deadline == 'required'):
+            if not deadline:
+                raise models.except_orm(
+                    'Deadline required!',
+                    'This class of service requires deadline to be '
+                    'provided.')
+        if self.filtered(lambda c: c.cos_id and c.cos_id.deadline == 'nodate'):
+            if deadline:
+                raise models.except_orm(
+                    'Deadline must NOT exist!',
+                    'This class of service requires deadline to be '
+                    'empty.')
         return True
 
     @api.multi

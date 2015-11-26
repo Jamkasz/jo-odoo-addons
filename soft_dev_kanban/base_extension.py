@@ -34,7 +34,8 @@ class ResUsersExtension(models.Model):
         It always updates the ``date_last_wip_update``
         """
         values = {}
-        if self.date_last_wip_update == date.today().strftime(DF) or \
+        today = date.today().strftime(DF)
+        if self.date_last_wip_update == today or \
                 not self.date_last_wip_update:
             values['wi_finished'] = self.wi_finished + 1
         else:
@@ -42,7 +43,7 @@ class ResUsersExtension(models.Model):
                                     self.wi_finished) / (self.total_days + 1)
             values['wi_finished'] = 1
             values['total_days'] = self.total_days + 1
-        values['date_last_wip_update'] = date.today().strftime(DF)
+        values['date_last_wip_update'] = today
         self.write(values)
 
     @api.one
