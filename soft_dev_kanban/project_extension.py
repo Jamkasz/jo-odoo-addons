@@ -97,10 +97,11 @@ class ProjectTaskTypeExtension(models.Model):
                     raise models.except_orm(
                         'Stage Type Error',
                         'Only queue stages can have related_stage_id')
-        if vals.get('stage_type'):
-            if vals.get('stage_type') != 'queue':
+        stage_type = vals.get('stage_type')
+        if stage_type:
+            if stage_type != 'queue':
                 vals['related_stage_id'] = False
-            if vals.get('stage_type') in ['backlog', 'queue', 'done']:
+            if stage_type in ['backlog', 'queue', 'done']:
                     vals['wip_limit'] = False
         if vals.get('wip_limit'):
             for stage in self:
@@ -135,11 +136,10 @@ class ProjectTaskTypeExtension(models.Model):
         """
         task_model = self.env['project.task']
         queues = self.search([['related_stage_id', '=', self.id]])
-        work_items = task_model.search([
+        return task_model.search_count([
             '|',
             ['stage_id', '=', self.id],
             ['stage_id', 'in', [q.id for q in queues]]])
-        return len(work_items)
 
     @api.onchange('related_stage_id')
     def onchange_related_stage_id(self):
@@ -264,15 +264,10 @@ class ProjectTaskExtension(models.Model):
         If the task is related to a project with a working hours
         calendar, it returns only the working hours.
         """
-        if self.date_out:
-            date_end = dt.strptime(self.date_out, dtf)
-        else:
-            date_end = dt.now()
-        if self.date_in:
-            self.total_time = self.get_working_hours(
-                dt.strptime(self.date_in, dtf), date_end)[0]
-        else:
-            self.total_time = False
+        self.total_time = self.get_working_hours(
+            dt.strptime(self.date_in, dtf),
+            dt.strptime(self.date_out, dtf) if self.date_out else dt.now()
+        )[0] if self.date_in else False
 
     @api.one
     def _compute_stage_time(self):
@@ -284,12 +279,10 @@ class ProjectTaskExtension(models.Model):
         If the task is related to a project with a working hours
         calendar, it returns only the working hours.
         """
-        if self.date_out:
-            date_end = dt.strptime(self.date_out, dtf)
-        else:
-            date_end = dt.now()
-        stage_id = self.stage_id.id
-        self.stage_time = self.stage_working_hours(stage_id, date_end)[0]
+        self.stage_time = self.stage_working_hours(
+            self.stage_id.id,
+            dt.strptime(self.date_out, dtf) if self.date_out else dt.now()
+        )[0]
 
     @api.one
     def get_working_hours(self, date_start, date_end):
@@ -340,19 +333,18 @@ class ProjectTaskExtension(models.Model):
             raise models.except_orm(
                 'Attribute Error',
                 'expected datetime, received %s' % type(date))
-        task_history_records = self.env['project.task.history'].search([
+        history_records = self.env['project.task.history'].search([
             ['task_id', '=', self.id], ['date', '<=', date.strftime(dtf)],
             ['type_id', '=', stage_id]],
             order='date asc')
         result = 0
-        for th in task_history_records:
-            result += th.working_hours if th.working_hours else 0
+        if history_records:
+            result += sum([hr.working_hours for hr in history_records])
         if self.stage_id.id == stage_id:
-            date_start = dt.strptime(
-                task_history_records[len(task_history_records) - 1].date, dtf) \
-                if len(task_history_records) > 1 \
+            date_start = dt.strptime(history_records[-1].date, dtf) \
+                if history_records \
                 else dt.strptime(self.date_last_stage_update, dtf)
-            result += self.get_working_hours(date_start, date)[0]
+            return result + self.get_working_hours(date_start, date)[0]
         return result
 
     @api.one
