@@ -193,6 +193,11 @@
         </record>
 
         <!-- Tags -->
+        <record id="sdk_tag_feature" model="project.category">
+            <field name="name">Feature</field>
+            <field name="cos_id" ref="sdk_cos_feature"/>
+        </record>
+
         <record id="sdk_tag_urgent" model="project.category">
             <field name="name">Urgent</field>
             <field name="cos_id" ref="sdk_cos_urgent"/>

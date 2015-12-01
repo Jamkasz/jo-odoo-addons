@@ -1,11 +1,18 @@
 <openerp>
     <data>
         <!-- Classes of Service -->
+        <record id="sdk_cos_feature" model="sdk.class_of_service">
+            <field name="name">Feature</field>
+            <field name="colour" eval="6"/>
+            <field name="priority">1</field>
+            <field name="ignore_limit" eval="True"/>
+        </record>
+
         <record id="sdk_cos_urgent" model="sdk.class_of_service">
             <field name="name">Urgent</field>
             <field name="limit">1</field>
             <field name="colour" eval="9"/>
-            <field name="priority">1</field>
+            <field name="priority">10</field>
             <field name="ignore_limit" eval="True"/>
             <field name="deadline">required</field>
         </record>
@@ -13,7 +20,7 @@
         <record id="sdk_cos_fdd" model="sdk.class_of_service">
             <field name="name">Fixed Delivery Date</field>
             <field name="colour" eval="8"/>
-            <field name="priority">10</field>
+            <field name="priority">20</field>
             <field name="dynamic_priority">deadline</field>
             <field name="deadline_high">1.25</field>
             <field name="deadline_normal">3</field>
@@ -23,13 +30,13 @@
         <record id="sdk_cos_defect" model="sdk.class_of_service">
             <field name="name">Defect</field>
             <field name="colour" eval="2"/>
-            <field name="priority">20</field>
+            <field name="priority">30</field>
         </record>
 
         <record id="sdk_cos_regular" model="sdk.class_of_service">
             <field name="name">Regular</field>
             <field name="colour" eval="3"/>
-            <field name="priority">30</field>
+            <field name="priority">40</field>
             <field name="dynamic_priority">blocked</field>
             <field name="time_high">7</field>
             <field name="time_normal">3</field>
@@ -39,7 +46,7 @@
         <record id="sdk_cos_intangible" model="sdk.class_of_service">
             <field name="name">Intangible</field>
             <field name="colour" eval="4"/>
-            <field name="priority">40</field>
+            <field name="priority">50</field>
             <field name="deadline">nodate</field>
         </record>
     </data>
