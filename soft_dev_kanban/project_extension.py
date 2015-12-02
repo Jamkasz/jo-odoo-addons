@@ -214,6 +214,8 @@ class ProjectTaskExtension(models.Model):
         _priority_selection, string='Dynamic Priority',
         compute='_compute_priority', store=False, readonly=True)
     feature_id = fields.Many2one('project.task', 'Feature')
+    work_item_ids = fields.One2many('project.task', 'feature_id',
+                                    'Work Items', readonly=True)
 
     @api.model
     def _message_get_auto_subscribe_fields(self, updated_fields,
