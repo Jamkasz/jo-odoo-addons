@@ -555,7 +555,7 @@ class ProjectTaskExtension(models.Model):
         :rtype: bool
         """
         feature_tags = self.env['project.category'].search(
-                [['cos_id.can_be_parent', '=', True]])
+            [['cos_id.can_be_parent', '=', True]])
         feature_tasks = self.search(
             [['categ_ids', 'in', [tag.id for tag in feature_tags]]])
         feature_ids = [ft.id for ft in feature_tasks]
