@@ -34,20 +34,23 @@ class TestCosParentOption(common.SingleTransactionCase):
     def test_03_check_feature_id_raises_if_task_is_feature(self):
         self.task2.categ_ids = [self.tag_feature.id]
         with self.assertRaises(except_orm):
-            self.task2.check_feature_id(self.task.id)
+            self.task2.check_feature_id(self.task2.id)
 
     def test_04_write_feature_id_raises_if_task_is_feature(self):
         with self.assertRaises(except_orm):
-            self.task2.feature_id = self.task.id
+            self.task2.feature_id = self.task2.id
 
-    def test_05_fields_view_get_feature_id_domain_excludes_non_features(self):
+    def test_05_check_feature_id_returns_true_if_correct(self):
+        self.assertTrue(self.task.check_feature_id(self.task2.id))
+
+    def test_06_fields_view_get_feature_id_domain_excludes_non_features(self):
         res = self.task_model.fields_view_get(view_type='form')
         self.assertTrue(res['fields'].get('feature_id'))
         self.assertListEqual(
             res['fields']['feature_id'].get('domain'),
             [['id', 'in', [self.task2.id]]])
 
-    def test_06_fields_view_get_feature_id_invisible_if_task_feature(self):
+    def test_07_fields_view_get_feature_id_invisible_if_task_feature(self):
         res = self.task_model.fields_view_get(view_type='form')
         self.assertTrue(res['fields'].get('feature_id'))
         self.assertDictEqual(
