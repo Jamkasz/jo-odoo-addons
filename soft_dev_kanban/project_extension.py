@@ -213,6 +213,7 @@ class ProjectTaskExtension(models.Model):
     dynamic_priority = fields.Selection(
         _priority_selection, string='Dynamic Priority',
         compute='_compute_priority', store=False, readonly=True)
+    feature_id = fields.Many2one('project.task', 'Feature')
 
     @api.model
     def _message_get_auto_subscribe_fields(self, updated_fields,
@@ -521,6 +522,8 @@ class ProjectTaskExtension(models.Model):
                 vals['date_in'] = dt.now().strftime(dtf)
             if stage.stage_type == 'done' and not self.date_out:
                 vals['date_out'] = dt.now().strftime(dtf)
+        if vals.get('feature_id'):
+            self.check_feature_id(vals.get('feature_id'))
         res = super(ProjectTaskExtension, self).write(vals)
         if vals.get('categ_ids'):
             tag_model = self.env['project.category']
@@ -540,6 +543,32 @@ class ProjectTaskExtension(models.Model):
         elif 'date_deadline' in vals:
             self.categ_ids.check_deadline_required(vals.get('date_deadline'))
         return res
+
+    @api.multi
+    def check_feature_id(self, feature_id):
+        """
+        Checks if the feature_id can be linked to the tasks
+
+        :param feature_id: ``project.task`` id
+        :type feature_id: int
+        :returns: True
+        :rtype: bool
+        """
+        feature_tags = self.env['project.category'].search(
+                [['cos_id.can_be_parent', '=', True]])
+        feature_tasks = self.search(
+            [['categ_ids', 'in', [tag.id for tag in feature_tags]]])
+        feature_ids = [ft.id for ft in feature_tasks]
+        if feature_id not in feature_ids:
+            raise models.except_orm(
+                'Class of Service Error!',
+                'The task feature must be linked to a Feature Class of '
+                'Service.')
+        if any([t.id in feature_ids for t in self]):
+            raise models.except_orm(
+                'Class of Service Error!',
+                'A feature tagged task cannot have a feature attached to it.')
+        return True
 
     @api.one
     def ignore_wip_limit(self):
@@ -667,6 +696,23 @@ class ProjectTaskExtension(models.Model):
         if history_records:
             self.date_out = history_records[0].date
         return True
+
+    @api.model
+    def fields_view_get(self, view_id=None, view_type=False, toolbar=False,
+                        submenu=False):
+        res = super(ProjectTaskExtension, self).fields_view_get(
+            view_id=view_id, view_type=view_type, toolbar=toolbar,
+            submenu=submenu)
+        if view_type == 'form' and res['fields'].get('feature_id'):
+            feature_tags = self.env['project.category'].search(
+                [['cos_id.can_be_parent', '=', True]])
+            feature_tasks = self.search(
+                [['categ_ids', 'in', [tag.id for tag in feature_tags]]])
+            res['fields']['feature_id']['domain'] = [
+                ['id', 'in', [task.id for task in feature_tasks]]]
+            res['fields']['feature_id']['attrs'] = {'invisible': [
+                ['id', 'in', [task.id for task in feature_tasks]]]}
+        return res
 
 
 class ProjectExtension(models.Model):

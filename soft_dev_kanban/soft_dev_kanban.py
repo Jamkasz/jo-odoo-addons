@@ -103,6 +103,10 @@ class ClassOfService(models.Model):
         help="If the task stays for this amount of days in the same stage, "
              "priority will increase to High")
     tag_ids = fields.One2many('project.category', 'cos_id', 'Tags', readonly=1)
+    can_be_parent = fields.Boolean(
+        'Can be Parent', default=False,
+        help="If the class of service has this option active, tasks related to"
+             " it will be selectable as Feature for other tasks.")
 
     @api.multi
     def write(self, vals):

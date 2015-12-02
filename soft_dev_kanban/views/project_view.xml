@@ -17,6 +17,7 @@
                     <field name="stage_time"/>
                 </xpath>
                 <xpath expr="//field[@name='categ_ids']" position="after">
+                    <field name="feature_id"/>
                     <field name="date_in"/>
                     <field name="date_out"/>
                 </xpath>
