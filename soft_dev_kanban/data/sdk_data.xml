@@ -7,6 +7,7 @@
             <field name="priority">1</field>
             <field name="ignore_limit" eval="True"/>
             <field name="can_be_parent" eval="True"/>
+            <field name="track_stage" eval="True"/>
         </record>
 
         <record id="sdk_cos_urgent" model="sdk.class_of_service">

@@ -544,6 +544,8 @@ class ProjectTaskExtension(models.Model):
                 tags.check_deadline_required(task.date_deadline)
         elif 'date_deadline' in vals:
             self.categ_ids.check_deadline_required(vals.get('date_deadline'))
+        if vals.get('stage_id'):
+            self.update_feature_stage_tracking()
         return res
 
     @api.multi
@@ -570,6 +572,45 @@ class ProjectTaskExtension(models.Model):
             raise models.except_orm(
                 'Class of Service Error!',
                 'A feature tagged task cannot have a feature attached to it.')
+        return True
+
+    @api.one
+    def get_tracked_stage_id(self):
+        """
+        Computes the earliest stage among the work_item_ids tasks
+
+        :returns: ``project.task.type`` id
+        :rtype: int
+        """
+        if not self.work_item_ids:
+            return False
+        stage = self.work_item_ids[0].stage_id
+        sequence = stage.sequence
+        for wi in self.work_item_ids:
+            if wi.stage_id.sequence < sequence:
+                stage = wi.stage_id
+                sequence = stage.sequence
+        return stage.id
+
+    @api.one
+    def update_feature_stage_tracking(self):
+        """
+        Updates stage of the feature task if it's tracking the child
+        tasks stage
+
+        :returns: True
+        :rtype: bool
+        """
+        if not self.feature_id:
+            return True
+        tracker_tags = self.env['project.category'].search(
+            [['cos_id.track_stage', '=', True]])
+        tracker_tasks = self.search(
+            [['categ_ids', 'in', [tag.id for tag in tracker_tags]]])
+        tracker_ids = [ft.id for ft in tracker_tasks]
+        if self.feature_id.id not in tracker_ids:
+            return True
+        self.feature_id.stage_id = self.feature_id.get_tracked_stage_id()[0]
         return True
 
     @api.one

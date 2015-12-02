@@ -14,3 +14,4 @@ import test_cos_tasks_kanban_colour
 import test_cos_deadline_requirement
 import test_cos_dynamic_priority
 import test_cos_parent_option
+import test_cos_track_stage
