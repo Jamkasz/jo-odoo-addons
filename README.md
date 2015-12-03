@@ -25,7 +25,7 @@ Extension of the Project Kanban features to match better the Software Developmen
 - [X] Task Blocked Reason
 
 <b>Classes of Service</b>
-- [ ] Feature
+- [X] Feature
 - [X] Urgent
 - [X] Fixed Delivery Date
 - [X] Regular Work
