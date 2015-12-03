@@ -25,6 +25,7 @@ env:
   matrix:
   - LINT_CHECK="1" TESTS="0"
   - ODOO_REPO="odoo/odoo" TESTS="1" INCLUDE="soft_dev_kanban"
+  - ODOO_REPO="valdecdev/odoo" TESTS="1" INCLUDE="soft_dev_kanban"
 
 virtualenv:
   system_site_packages: true

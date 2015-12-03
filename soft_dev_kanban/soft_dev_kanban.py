@@ -103,6 +103,24 @@ class ClassOfService(models.Model):
         help="If the task stays for this amount of days in the same stage, "
              "priority will increase to High")
     tag_ids = fields.One2many('project.category', 'cos_id', 'Tags', readonly=1)
+    can_be_parent = fields.Boolean(
+        'Can be Parent', default=False,
+        help="If the class of service has this option active, tasks related to"
+             " it will be selectable as Feature for other tasks.")
+    track_stage = fields.Boolean(
+        'Track Childs Stage', default=False,
+        help="If the class of service has this option active, tasks related to"
+             " it will automatically set their stage to the earliest child "
+             "task stage.")
+
+    @api.model
+    def create(self, vals):
+        if vals.get('track_stage') and not vals.get('can_be_parent'):
+            raise models.except_orm(
+                'Class of Service Error!',
+                'In order to track child tasks stages the Class of Service '
+                'needs to be flagged as parent.')
+        return super(ClassOfService, self).create(vals)
 
     @api.multi
     def write(self, vals):
@@ -114,6 +132,14 @@ class ClassOfService(models.Model):
         :returns: True
         :rtype: bool
         """
+        if 'can_be_parent' in vals and not vals.get('can_be_parent'):
+            vals['track_stage'] = False
+        elif vals.get('track_stage'):
+            if not self.can_be_parent:
+                raise models.except_orm(
+                    'Class of Service Error!',
+                    'In order to track child tasks stages the Class of '
+                    'Service needs to be flagged as parent.')
         res = super(ClassOfService, self).write(vals)
         if vals.get('colour') or vals.get('priority'):
             tag_model = self.env['project.category']

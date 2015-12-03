@@ -39,6 +39,11 @@
                                     <field name="time_high"
                                            attrs="{'invisible':[['dynamic_priority','!=','blocked']]}"/>
                                 </group>
+                                <group string="Feature Class">
+                                    <field name="can_be_parent"/>
+                                    <field name="track_stage"
+                                           attrs="{'invisible':[['can_be_parent','!=',True]]}"/>
+                                </group>
                             </page>
                         </notebook>
                     </sheet>
